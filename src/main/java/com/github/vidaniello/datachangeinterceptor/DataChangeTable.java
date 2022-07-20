@@ -32,7 +32,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private transient Logger log = LogManager.getLogger();
+	private static Logger log = LogManager.getLogger();
 	
 	private Metadates metadates;
 	

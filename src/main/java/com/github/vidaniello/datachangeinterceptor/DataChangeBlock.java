@@ -26,7 +26,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 
 	public static final Long default_millisecBeetwenTableQuery = 10l;
 	
-	private transient Logger log = LogManager.getLogger();
+	private static Logger log = LogManager.getLogger();
 	
 	/*private ConnectionParameters connectionParameters;*/
 	private Set<DataChangeTable> observedTables;
