@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicBooleanExpressionProducerIf;
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicExpressionProducerIf;
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicJoinTuple;
+import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicRangeComparatorIf;
 import com.github.vidaniello.datachangeinterceptor.dynamic.JoinTuple;
 import com.github.vidaniello.datachangeinterceptor.dynamic.JoinTupleIf;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryEmitterAbstract;
@@ -40,6 +41,9 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	//private /*Map<String, */List<DynamicPreQueryOperationIf<?, ?>>/*>*/ tablePreQueries;
 	private DataChangeBlock parentBlock;
 	
+	//JMS
+	private Deque<Serializable> jmsMapKeys;
+	
 	//Select
 	private Deque<Serializable> keys;
 	private Set<DataField<?>> observedFields;
@@ -60,6 +64,12 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	
 	private DBTemplate dbTemplate;
 	
+	/**
+	 * If config is set true to this mode, when an entity with disriminator field not equal or lather is not finded
+	 * from the master query, the entity will be removed and not added to the deleted entity.
+	 */
+	private boolean modeWalkAndDeleteByDiscriminator;
+	private DynamicRangeComparatorIf<?> dynRangeComparator;
 		
 	public DataChangeTableConfig(Path<?> table, DataChangeBlock parentBlock, Path<?>... masterKey) {
 		this.table = table;
@@ -84,6 +94,20 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	}
 	*/
 	
+	public boolean isModeWalkAndDeleteByDiscriminator() {
+		return modeWalkAndDeleteByDiscriminator;
+	}
+	
+	public DynamicRangeComparatorIf<?> getDynRangeComparator() {
+		return dynRangeComparator;
+	}
+	
+	public DataChangeTableConfig setModeWalkAndDeleteByDiscriminator(boolean modeWalkAndDeleteByDiscriminator, DynamicRangeComparatorIf<?> dynRange) {
+		this.modeWalkAndDeleteByDiscriminator = modeWalkAndDeleteByDiscriminator;
+		this.dynRangeComparator = dynRange;
+		return this;
+	}
+	
 	private Deque<Serializable> getFrom() {
 		if(from==null)
 			from = new LinkedList<>();
@@ -100,6 +124,21 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 		return this;
 	}
 	
+	
+	public DataChangeTableConfig setJmsMapKeys(Serializable... jmsMapKeys) {
+		
+		this.jmsMapKeys = new LinkedList<>();
+		
+		if(jmsMapKeys!=null)
+			for(Serializable serializable : jmsMapKeys)
+				this.jmsMapKeys.addLast(serializable);
+		
+		return this;
+	}
+	
+	 Deque<Serializable> getJmsMapKeys() {
+		return jmsMapKeys;
+	}
 	
 	/*
 	public DataChangeTableConfig setTable(Path<?> table) {
@@ -164,6 +203,7 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 		return this;
 	}
 	*/
+	
 	
 
 	
@@ -504,6 +544,18 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 			else
 				ret += key.toString();
 		return ret;
+	}
+	
+	public String formatJmsKey(Tuple tuple) {
+		Deque<String> out = new LinkedList<>();
+		
+		for(Serializable key : getJmsMapKeys())
+			if(key instanceof Expression)
+				out.addLast( tuple.get((Expression<?>) key).toString().trim().replace('.', '_') );
+			else
+				out.addLast( key.toString().replace('.', '_') );
+		
+		return String.join(".", out.toArray(new String[]{}));
 	}
 	
 	//private transient Expression<?>[] _obsF;

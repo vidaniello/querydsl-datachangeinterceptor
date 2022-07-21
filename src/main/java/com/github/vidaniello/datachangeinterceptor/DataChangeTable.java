@@ -325,8 +325,13 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		boolean markTouched = false;
 		EntityChangeEvent ece = new EntityChangeEvent(timeOccured);
 		
-		if(!getEntities().containsKey(primaryKey)) {			
-			dce = new DataChangeTableEntity(primaryKey);
+		if(!getEntities().containsKey(primaryKey)) {	
+			
+			String jmsKey = null;
+			if(!getCfg().getJmsMapKeys().isEmpty())
+				jmsKey = getCfg().formatJmsKey(tuple);
+			
+			dce = new DataChangeTableEntity(primaryKey, jmsKey);
 			dce.setParent(this);
 			getEntities().put(primaryKey, dce);
 			ece.setChangeType(ChangeType.INSERTION);
@@ -410,6 +415,8 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	
 	private void findDeletedDataChangeTableEntity(SqlQueryInformationProcess qProcess, Date timeOccured, Set<Serializable> entitiesFinded, Set<DataChangeTableEntity> entitiesTouched) {
 
+		Set<Serializable> dcteToRemove = new HashSet<>();
+		
 		Date dat = new Date();
 		if(qProcess.getRangeComparator()==null) {
 			
@@ -424,8 +431,30 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			
 			getEntities().values().parallelStream().forEach(val->{
 				if(!entitiesFinded.contains(val.getKey()) && !val.isMarkAsDeleted()) {
-					markDataChangeTableEntityDeleted(timeOccured, val);
-					synchronized (entitiesTouched) {entitiesTouched.add(val);}
+					
+					try {
+					
+						
+						if(getCfg().isModeWalkAndDeleteByDiscriminator()) {
+							if(getCfg().getDynRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+								
+								markDataChangeTableEntityDeleted(timeOccured, val);
+								synchronized (entitiesTouched) {entitiesTouched.add(val);}
+							
+							} else
+								synchronized (dcteToRemove) {dcteToRemove.add(val.getKey());}
+							
+						} else {
+						
+							markDataChangeTableEntityDeleted(timeOccured, val);
+							synchronized (entitiesTouched) {entitiesTouched.add(val);}
+							
+						}
+					
+						
+					} catch (Exception e) {
+						log.warn(val.getKey()+": "+e.getMessage(), e);
+					}
 				}
 			});
 		
@@ -457,12 +486,28 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 				if(!entitiesFinded.contains(val.getKey()) && !val.isMarkAsDeleted()) {
 											
 						try {
-							if(qProcess.getRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
-								markDataChangeTableEntityDeleted(timeOccured, val);
+							
+							if(getCfg().isModeWalkAndDeleteByDiscriminator()) {
+								if(getCfg().getDynRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+									
+									if(qProcess.getRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+										markDataChangeTableEntityDeleted(timeOccured, val);
+										synchronized (entitiesTouched) {entitiesTouched.add(val);}
+									}
 								
-								synchronized (entitiesTouched) {entitiesTouched.add(val);}
+								} else
+									synchronized (dcteToRemove) {dcteToRemove.add(val.getKey());}
+								
+							} else {
+							
+								if(qProcess.getRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+									markDataChangeTableEntityDeleted(timeOccured, val);
+									synchronized (entitiesTouched) {entitiesTouched.add(val);}
+								}
 								
 							}
+														
+							
 						} catch (Exception e) {
 							log.warn(val.getKey()+": "+e.getMessage(), e);
 						}
@@ -473,6 +518,11 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		
 		String mess = "Cycle find deleted complete in "+TimeUnit.MILLISECONDS.toSeconds(new Date().getTime()-dat.getTime())+"  seconds";
 		log.debug(mess);
+		
+		if(!dcteToRemove.isEmpty()) {
+			log.debug(dcteToRemove.size()+ " table entities will be removed form trackchange.");
+			getEntities().keySet().removeAll(dcteToRemove);
+		}
 		
 		/*
 		if(qProcess.isThroughtQuery() || getCfg().getThoroughWhere()==null) {
