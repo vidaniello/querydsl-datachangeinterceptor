@@ -136,7 +136,10 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 		return this;
 	}
 	
+	
 	 Deque<Serializable> getJmsMapKeys() {
+		 if(jmsMapKeys==null)
+			 jmsMapKeys = new LinkedList<>();
 		return jmsMapKeys;
 	}
 	
