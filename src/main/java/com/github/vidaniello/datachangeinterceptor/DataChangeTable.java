@@ -331,7 +331,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			if(!getCfg().getJmsMapKeys().isEmpty())
 				jmsKey = getCfg().formatJmsKey(tuple);
 			
-			dce = new DataChangeTableEntity(primaryKey, jmsKey);
+			dce = new DataChangeTableEntity(primaryKey, jmsKey, getParent().formatMasterKey(getCfg(), tuple));
 			dce.setParent(this);
 			getEntities().put(primaryKey, dce);
 			ece.setChangeType(ChangeType.INSERTION);

@@ -1,18 +1,24 @@
 package com.github.vidaniello.datachangeinterceptor;
 
 import java.io.Serializable;
+import java.lang.instrument.Instrumentation;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicPreQueryOperationIf;
+import com.github.vidaniello.datachangeinterceptor.jms.TouchEvent;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerAndEmitterAbstract;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -81,9 +87,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 			if(cfg.getMasterKey().length>0) {
 				
 				//Format the masterKey
-				String masterKey = "";				
-				for(Path<?> path : cfg.getMasterKey()) 
-					masterKey += tuple.get(path).toString().trim();
+				String masterKey = formatMasterKey(cfg, tuple);				
 				
 				if(!getEntityByMasterKey().containsKey(masterKey))
 					getEntityByMasterKey().put(masterKey, new HashMap<>());
@@ -96,11 +100,18 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 				Map<Serializable, DataChangeTableEntity> goupByMasterKey = tableGoupByMasterKey.get(cfg.getTable());
 				
 				if(!goupByMasterKey.containsKey(newDce.getKey()))
-						goupByMasterKey.put(newDce.getKey(), newDce);
+					goupByMasterKey.put(newDce.getKey(), newDce);
 				
 			}
 		
 		
+	}
+	
+	public String formatMasterKey(DataChangeTableConfig cfg, Tuple tuple) {
+		String masterKey = "";				
+		for(Path<?> path : cfg.getMasterKey()) 
+			masterKey += tuple.get(path).toString().trim();
+		return masterKey;
 	}
 	
 	@Override
@@ -253,6 +264,29 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return touched;
 	}
 		
+	public List<TouchEvent> getLastTouchEvents(Map<DataChangeTable, Set<DataChangeTableEntity>> lastTouched) {
+		
+		List<TouchEvent> ret = new ArrayList<>();
+		
+		Date start = new Date();
+		
+		for(DataChangeTable dct : lastTouched.keySet()) {
+			Set<DataChangeTableEntity> val =lastTouched.get(dct);
+			
+			for(DataChangeTableEntity dcte : val) {
+				//dct.
+			}
+			
+		}
+		
+		
+		
+		
+		
+		log.trace("TIME OCCURED: "+TimeUnit.MILLISECONDS.toSeconds(new Date().getTime()-start.getTime())+" sec.");
+		
+		return ret;
+	} 
 	
 	/*
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> queryAll(DataSource ds) throws Exception {

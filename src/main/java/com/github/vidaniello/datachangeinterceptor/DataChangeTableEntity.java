@@ -25,6 +25,7 @@ public class DataChangeTableEntity implements Serializable {
 	private Metadates metadates;
 	private Serializable key;
 	private String jmsKey;
+	private String masterKey;
 	private Set<DataChangeFieldEvents<?>> fieldsEvents;
 	private Deque<EntityChangeEvent> entityEvents;
 	
@@ -34,9 +35,10 @@ public class DataChangeTableEntity implements Serializable {
 		
 	}
 		
-	public DataChangeTableEntity(Serializable key, String jmsKey) {
+	public DataChangeTableEntity(Serializable key, String jmsKey, String masterKey) {
 		this.key = key;
 		this.jmsKey = jmsKey;
+		this.masterKey = masterKey;
 	}
 	
 	public Metadates getMetadates() {
@@ -75,6 +77,10 @@ public class DataChangeTableEntity implements Serializable {
 	
 	public String getJmsKey() {
 		return jmsKey;
+	}
+	
+	public String getMasterKey() {
+		return masterKey;
 	}
 	
 	
