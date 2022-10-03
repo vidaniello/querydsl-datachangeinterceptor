@@ -169,12 +169,16 @@ public class DataChangeTableEntity implements Serializable {
 		return filterFieldChangeEvents(fields, getEntityEvents().getLast().getTime(), null, changeTypes);
 	}
 	
-	public List<FieldChangeEvent> getAllLastFieldChangeEvent(ChangeType[] changeTypes) {
+	public List<FieldChangeEvent> getAllLastFieldChangeEventsByChangeType(ChangeType[] changeTypes) {
 		return filterFieldChangeEvents(null, getEntityEvents().getLast().getTime(), null, changeTypes);
 	}
 	
-	public List<FieldChangeEvent> getAllLastFieldChangeEventNoAlignment() {
+	public List<FieldChangeEvent> getAllLastFieldChangeEventsNoAlignment() {
 		return filterFieldChangeEvents(null, getEntityEvents().getLast().getTime(), null, new ChangeType[] {ChangeType.INSERTION, ChangeType.MODIFICATION, ChangeType.DELETION});
+	}
+	
+	public List<FieldChangeEvent> getAllLastFieldChangeEvents() {
+		return filterFieldChangeEvents(null, getEntityEvents().getLast().getTime(), null, null);
 	}
 	
 	

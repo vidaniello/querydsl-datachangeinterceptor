@@ -337,7 +337,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			ece.setChangeType(ChangeType.INSERTION);
 			markTouched = true;
 			
-			getParent().addToMasterKeyMap(getCfg(), tuple, dce);
+			//getParent().addToMasterKeyMap(getCfg(), tuple, dce);
 			
 		} else {
 			dce = getEntities().get(primaryKey);

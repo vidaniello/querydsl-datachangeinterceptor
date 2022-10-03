@@ -18,7 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicPreQueryOperationIf;
-import com.github.vidaniello.datachangeinterceptor.jms.TouchEvent;
+import com.github.vidaniello.datachangeinterceptor.jms.EntityTouchEvent;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerAndEmitterAbstract;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -37,10 +37,12 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	/*private ConnectionParameters connectionParameters;*/
 	private Set<DataChangeTable> observedTables;
 	private Metadates metadates;
-	private String label;
+	private String[] blockName;
 	private DBTemplate dbTemplate;
 	private Long millisecBeetwenTableQuery;
+	private MasterKeyPattern masterKeyPattern;
 	
+	private Date lastRequestTime;
 	private Map<DataChangeTable, Set<DataChangeTableEntity>> lastTouched;
 	
 	
@@ -48,13 +50,15 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	
 	private Map<Date, Statistics> statistics;
 	
-	private Map<Serializable, Map<Path<?>, Map<Serializable, DataChangeTableEntity>	>	> entityByMasterKey; 
+	//private Map<Serializable, Map<Path<?>, Map<Serializable, DataChangeTableEntity>	>	> entityByMasterKey; 
 	
 	//private List<DynamicPreQueryOperationIf<?, ?>> blockPreQueries;
 	
-	public DataChangeBlock(String label) {
-		this.label = label;
+	public DataChangeBlock(String... blockName) {
+		this.blockName = blockName;
 	}
+	
+	
 	
 	public Metadates getMetadates() {
 		if(metadates==null)
@@ -74,14 +78,16 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return statistics;
 	}
 	
+	/*
 	public synchronized Map<Serializable, Map<Path<?>, Map<Serializable, DataChangeTableEntity>	>	> getEntityByMasterKey() {
 		if(entityByMasterKey==null)
 			entityByMasterKey = new HashMap<>();
 		return entityByMasterKey;
 	}
+	*/
 	
 	
-	
+	/*
 	void addToMasterKeyMap(DataChangeTableConfig cfg, Tuple tuple, DataChangeTableEntity newDce) {
 		if(cfg.getMasterKey()!=null)
 			if(cfg.getMasterKey().length>0) {
@@ -106,11 +112,38 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		
 		
 	}
+	*/
 	
+	public MasterKeyPattern getMasterKeyPattern() {
+		if(masterKeyPattern==null)
+			masterKeyPattern = new MasterKeyPattern();
+		return masterKeyPattern;
+	}
+	
+	public DataChangeBlock setMasterKeyPattern(MasterKeyPattern masterKeyPattern) {
+		this.masterKeyPattern = masterKeyPattern;
+		return this;
+	}
+	
+	/**
+	 * A group of table can identify an entity, and the master key is, in fact, the
+	 * key who identify the entire entity between the tables.<br>
+	 * Another parameter to pass in the main configuration, in the DataChangeBlock,
+	 * is the MasterKeyPattern. 
+	 * @param cfg
+	 * @param tuple
+	 * @return
+	 */
 	public String formatMasterKey(DataChangeTableConfig cfg, Tuple tuple) {
-		String masterKey = "";				
-		for(Path<?> path : cfg.getMasterKey()) 
-			masterKey += tuple.get(path).toString().trim();
+		String masterKey = "";
+		
+		
+		
+		int i = 0;
+		for(Path<?> path : cfg.getMasterKey()) {
+			masterKey += getMasterKeyPattern().formatField(i, tuple.get(path).toString().trim());
+			i++;
+		}
 		return masterKey;
 	}
 	
@@ -132,8 +165,8 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return toret;
 	}
 	
-	public String getLabel() {
-		return label;
+	public String[] getBlockName() {
+		return blockName;
 	}
 	
 	/*
@@ -255,38 +288,16 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 			firstTable = false;
 		}
 		
+		lastRequestTime = timeEvent;
 		lastTouched = touched;
 		
 		stat.endTimeQueries();
 		
-		log.trace("DataBlock '"+getLabel()+"' stats: "+stat);
+		log.trace("DataBlock '"+getBlockName()+"' stats: "+stat);
 		
 		return touched;
 	}
 		
-	public List<TouchEvent> getLastTouchEvents(Map<DataChangeTable, Set<DataChangeTableEntity>> lastTouched) {
-		
-		List<TouchEvent> ret = new ArrayList<>();
-		
-		Date start = new Date();
-		
-		for(DataChangeTable dct : lastTouched.keySet()) {
-			Set<DataChangeTableEntity> val =lastTouched.get(dct);
-			
-			for(DataChangeTableEntity dcte : val) {
-				//dct.
-			}
-			
-		}
-		
-		
-		
-		
-		
-		log.trace("TIME OCCURED: "+TimeUnit.MILLISECONDS.toSeconds(new Date().getTime()-start.getTime())+" sec.");
-		
-		return ret;
-	} 
 	
 	/*
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> queryAll(DataSource ds) throws Exception {
@@ -304,6 +315,10 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> getLastTouchedTableEntities() {
 		return lastTouched;
+	}
+	
+	public synchronized Date getLastRequestTime() {
+		return lastRequestTime;
 	}
 	
 	/*

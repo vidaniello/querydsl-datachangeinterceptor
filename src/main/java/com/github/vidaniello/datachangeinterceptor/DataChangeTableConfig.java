@@ -19,6 +19,7 @@ import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicJoinTuple;
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicRangeComparatorIf;
 import com.github.vidaniello.datachangeinterceptor.dynamic.JoinTuple;
 import com.github.vidaniello.datachangeinterceptor.dynamic.JoinTupleIf;
+import com.github.vidaniello.datachangeinterceptor.jms.UtilForJMS;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryEmitterAbstract;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerIf;
 import com.querydsl.core.Tuple;
@@ -42,7 +43,8 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	private DataChangeBlock parentBlock;
 	
 	//JMS
-	private Deque<Serializable> jmsMapKeys;
+	private Deque<Path<?>> jmsMapKeys;
+	private String tableName;
 	
 	//Select
 	private Deque<Serializable> keys;
@@ -71,16 +73,21 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	private boolean modeWalkAndDeleteByDiscriminator;
 	private DynamicRangeComparatorIf<?> dynRangeComparator;
 		
-	public DataChangeTableConfig(Path<?> table, DataChangeBlock parentBlock, Path<?>... masterKey) {
+	public DataChangeTableConfig(Path<?> table, String tableName, DataChangeBlock parentBlock, Path<?>... masterKey) {
 		this.table = table;
  		this.parentBlock = parentBlock;
  		this.masterKey = masterKey;
+ 		this.tableName = tableName;
 	}
 
 	public Path<?> getTable() {
 		return table;
 	}
 
+	public String getTableName() {
+		return tableName;
+	}
+	
 	/*
 	public Expression<?> getFromInQuery(){
 		if(fromInQuery==null)
@@ -125,19 +132,19 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	}
 	
 	
-	public DataChangeTableConfig setJmsMapKeys(Serializable... jmsMapKeys) {
+	public DataChangeTableConfig setJmsMapKeys(Path<?>... jmsMapKeys) {
 		
 		this.jmsMapKeys = new LinkedList<>();
 		
 		if(jmsMapKeys!=null)
-			for(Serializable serializable : jmsMapKeys)
-				this.jmsMapKeys.addLast(serializable);
+			for(Path<?> jmsKey : jmsMapKeys)
+				this.jmsMapKeys.addLast(jmsKey);
 		
 		return this;
 	}
 	
 	
-	 Deque<Serializable> getJmsMapKeys() {
+	 Deque<Path<?>> getJmsMapKeys() {
 		 if(jmsMapKeys==null)
 			 jmsMapKeys = new LinkedList<>();
 		return jmsMapKeys;
@@ -170,10 +177,19 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 		return this;
 	}
 	
+	/**
+	 * Where clause mandatory or not.
+	 * @return
+	 */
 	public boolean isWhereClauseMandatory() {
 		return whereClauseMandatory;
 	}
 	
+	/**
+	 * Set if where clause is mandatory.
+	 * @param whereClauseMandatory
+	 * @return
+	 */
 	public DataChangeTableConfig setWhereClauseMandatory(boolean whereClauseMandatory) {
 		this.whereClauseMandatory = whereClauseMandatory;
 		return this;
@@ -552,13 +568,13 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	public String formatJmsKey(Tuple tuple) {
 		Deque<String> out = new LinkedList<>();
 		
-		for(Serializable key : getJmsMapKeys())
+		for(Path<?> key : getJmsMapKeys())
 			if(key instanceof Expression)
-				out.addLast( tuple.get((Expression<?>) key).toString().trim().replace('.', '_') );
-			else
-				out.addLast( key.toString().replace('.', '_') );
+				out.addLast( tuple.get((Expression<?>) key).toString().trim()/*.replace(UtilForJMS.dafault_jmsPathSeparator.charAt(0), '_')*/ );
+			//else
+				//out.addLast( key.toString().replace('.', '_') );
 		
-		return String.join(".", out.toArray(new String[]{}));
+		return String.join(UtilForJMS.dafault_jmsPathSeparator, out.toArray(new String[]{}));
 	}
 	
 	//private transient Expression<?>[] _obsF;
