@@ -97,12 +97,10 @@ public class TableField implements Serializable {
 	public void setOldDate(Date oldDate) {
 		this.oldDate = oldDate;
 	}
-	
-	
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(fieldName);
+		return Objects.hash(fieldName, subField);
 	}
 
 	@Override
@@ -114,8 +112,7 @@ public class TableField implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		TableField other = (TableField) obj;
-		return Objects.equals(fieldName, other.fieldName);
+		return Objects.equals(fieldName, other.fieldName) && Objects.equals(subField, other.subField);
 	}
-	
 	
 }

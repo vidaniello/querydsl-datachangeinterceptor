@@ -38,6 +38,7 @@ public class EntityTouchEvent implements Serializable {
 		this.entityKey = entityKey;
 	}
 	
+	
 	public Set<ChangeType> getChanges() {
 		if(changes==null)
 			changes = new HashSet<>();
@@ -48,6 +49,7 @@ public class EntityTouchEvent implements Serializable {
 		this.changes = changes;
 	}
 	
+	
 	public List<Table> getTables() {
 		if(tables==null)
 			tables = new ArrayList<>();
@@ -57,6 +59,7 @@ public class EntityTouchEvent implements Serializable {
 	public void setTables(List<Table> tables) {
 		this.tables = tables;
 	}
+	
 
 	@Override
 	public int hashCode() {

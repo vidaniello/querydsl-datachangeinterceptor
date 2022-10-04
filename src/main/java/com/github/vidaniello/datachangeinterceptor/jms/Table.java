@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.github.vidaniello.datachangeinterceptor.ChangeType;
+
 public class Table implements Serializable {
 
 	/**
@@ -13,20 +15,19 @@ public class Table implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private String tableName;
+	private boolean isMasterTable;
+	private ChangeType changeType;
 	private List<TableField> fields;
 	
 	public Table() {
 		
 	}
-	
-	
-	
-	public Table(String tableName) {
+		
+	public Table(String tableName, boolean isMasterTable) {
 		super();
 		this.tableName = tableName;
+		this.isMasterTable = isMasterTable;
 	}
-
-
 
 	public String getTableName() {
 		return tableName;
@@ -34,6 +35,22 @@ public class Table implements Serializable {
 	
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
+	}
+	
+	public boolean isMasterTable() {
+		return isMasterTable;
+	}
+	
+	public void setMasterTable(boolean isMasterTable) {
+		this.isMasterTable = isMasterTable;
+	}
+	
+	public ChangeType getChangeType() {
+		return changeType;
+	}
+	
+	public void setChangeType(ChangeType changeType) {
+		this.changeType = changeType;
 	}
 	
 	public List<TableField> getFields() {

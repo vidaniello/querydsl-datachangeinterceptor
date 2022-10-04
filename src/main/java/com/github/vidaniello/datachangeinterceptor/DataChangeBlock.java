@@ -13,12 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicPreQueryOperationIf;
 import com.github.vidaniello.datachangeinterceptor.jms.EntityTouchEvent;
+import com.github.vidaniello.datachangeinterceptor.jms.UtilForJMS;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerAndEmitterAbstract;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -72,11 +75,17 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return observedTables;
 	}
 	
+	public DataChangeTable getMasterTable() {
+		return getObservedTables().stream().filter(dct->dct.getCfg().isMasterTable()).findFirst().orElse(null);
+	}
+	
 	public Map<Date, Statistics> getStatistics(){
 		if(statistics==null)
 			statistics = new HashMap<>();
 		return statistics;
 	}
+	
+	
 	
 	/*
 	public synchronized Map<Serializable, Map<Path<?>, Map<Serializable, DataChangeTableEntity>	>	> getEntityByMasterKey() {
@@ -293,7 +302,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		
 		stat.endTimeQueries();
 		
-		log.trace("DataBlock '"+getBlockName()+"' stats: "+stat);
+		log.trace("DataBlock '"+ Stream.of(getBlockName()).collect(Collectors.joining(UtilForJMS.dafault_jmsPathSeparator))+"' stats: "+stat);
 		
 		return touched;
 	}

@@ -42,6 +42,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	private Deque<Date> timeQueries;
 	private Map<Date, Statistics> statistics;
 	private Map<Serializable, DataChangeTableEntity> entities;
+	private Set<String> masterKeys;
 	
 	/*private Map<String, Serializable> lastPrequeryValues;*/
 
@@ -215,12 +216,28 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		return getCfg().getConstructedQuery(sqlConnection, getParent(), this);
 	}
 	
+	public synchronized Set<String> getMasterKeys() {
+		if(masterKeys==null)
+			masterKeys = new HashSet<>();
+		return masterKeys;
+	}
+	
 	public synchronized Map<Serializable, DataChangeTableEntity> getEntities() {
 		if(entities==null)
 			entities = new HashMap<>();
 		return entities;
 	}
-			
+	
+	public DataChangeTableEntity getByMasterKey(String masterKey) {
+		return getEntities().values().stream().filter(dcte->dcte.getMasterKey().equals(masterKey)).findAny().orElse(null);
+	}
+	
+	/*
+	public boolean existMasterKey(String masterKey) {
+		return getByMasterKey(masterKey)!=null;
+	}
+	*/
+	
 	public boolean isFirstQueryCall() {
 		return getEntities().isEmpty();
 	}
@@ -293,7 +310,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		//chiave primaria		
 		try(CloseableIterator<Tuple> iter = query.iterate();){
 			while(iter.hasNext()) 
-				checkField(qProcess, timeBeginQuery, primaryKeyFinded, iter.next(), entitiesTouched);
+				checkField(getParent().getMasterTable(), qProcess, timeBeginQuery, primaryKeyFinded, iter.next(), entitiesTouched);
 		}
 		
 		//dopo l'iterazione, dopo la prima per la precisione, 
@@ -313,11 +330,12 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		return entitiesTouched;
 	}
 	
-	private <T extends Serializable & Comparable<?>> void checkField(SqlQueryInformationProcess qProcess, Date timeOccured, Set<Serializable> primaryKeyFinded, Tuple tuple, Set<DataChangeTableEntity> entitiesTouched) {
+	private <T extends Serializable & Comparable<?>> void checkField(DataChangeTable masterTable, SqlQueryInformationProcess qProcess, Date timeOccured, Set<Serializable> primaryKeyFinded, Tuple tuple, Set<DataChangeTableEntity> entitiesTouched) {
 		
 		//costruzione della chiave primaria;
 		Serializable primaryKey = getCfg().formatKey(tuple);
-		
+		String masterKey = getParent().formatMasterKey(getCfg(), tuple);
+				
 		primaryKeyFinded.add(primaryKey);
 				
 		DataChangeTableEntity dce = null;
@@ -325,15 +343,27 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		boolean markTouched = false;
 		EntityChangeEvent ece = new EntityChangeEvent(timeOccured);
 		
-		if(!getEntities().containsKey(primaryKey)) {	
+		if(!getEntities().containsKey(primaryKey)) {
+			
+			//check if exsist in masterTable:
+			// - If exsist, proceed, else skip new insert
+			//   it will be counted on next time
+			if(!getCfg().isMasterTable() /*&& !getEntities().containsKey(primaryKey)*/)
+				if(!masterTable.getMasterKeys().contains(masterKey)) {
+					primaryKeyFinded.remove(primaryKey);
+					log.debug("masterKey '"+masterKey+"' in table '"+getCfg().getTableName()+"' skipped to next cycle");
+					return;
+				}
+			
 			
 			String jmsKey = null;
 			if(!getCfg().getJmsMapKeys().isEmpty())
 				jmsKey = getCfg().formatJmsKey(tuple);
 			
-			dce = new DataChangeTableEntity(primaryKey, jmsKey, getParent().formatMasterKey(getCfg(), tuple));
+			dce = new DataChangeTableEntity(primaryKey, jmsKey, masterKey);
 			dce.setParent(this);
 			getEntities().put(primaryKey, dce);
+			getMasterKeys().add(masterKey);
 			ece.setChangeType(ChangeType.INSERTION);
 			markTouched = true;
 			

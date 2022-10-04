@@ -69,7 +69,9 @@ public class UtilForJMS {
 					EntityChangeEvent ece = dcte.getEntityEvents().getLast();
 					ete.getChanges().add(ece.getChangeType());
 					
-					Table tab = new Table(dcte.getParent().getCfg().getTableName());
+					Table tab = new Table(dcte.getParent().getCfg().getTableName(), dcte.getParent().getCfg().isMasterTable());
+					tab.setChangeType(ece.getChangeType());
+					
 					
 					if(ete.getTables().contains(tab))
 						tab = ete.getTables().get(ete.getTables().indexOf(tab));
@@ -118,7 +120,7 @@ public class UtilForJMS {
 		});
 		*/
 		
-		ret.setEntityTouchEvents(preRet.values());
+		ret.getEntityTouchEvents().addAll(preRet.values());
 		
 		log.trace("TOTAL TIME OCCURED: "+TimeUnit.MILLISECONDS.toSeconds(new Date().getTime()-start.getTime())+" sec.");
 		
