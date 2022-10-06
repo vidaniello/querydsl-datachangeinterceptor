@@ -22,6 +22,8 @@ public class Tests {
 	
 	private Logger log = LogManager.getLogger();
 	
+	
+	
 	@Test
 	public void test1() {
 		try {
