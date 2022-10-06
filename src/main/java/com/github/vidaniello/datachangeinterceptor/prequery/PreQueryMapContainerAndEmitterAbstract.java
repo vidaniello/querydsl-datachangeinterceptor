@@ -12,7 +12,7 @@ public abstract class PreQueryMapContainerAndEmitterAbstract implements PreQuery
 	 */
 	private static final long serialVersionUID = 1L;
 
-	
+	private int executionOrderCounter;
 	private PreQueryEmitterImpl preQueryEmitterImpl;
 	private PreQueryMapContainerImpl preQueryMapContainerImpl;
 	
@@ -39,9 +39,11 @@ public abstract class PreQueryMapContainerAndEmitterAbstract implements PreQuery
 	}
 
 	@Override
-	public <OPERATION_TYPE extends Serializable, OPERATION_RETURN_TYPE extends Serializable> PreQueryEmitterIf addPrequery(
+	public synchronized <OPERATION_TYPE extends Serializable, OPERATION_RETURN_TYPE extends Serializable> PreQueryEmitterIf addPrequery(
 			DynamicPreQueryOperationIf<OPERATION_TYPE, OPERATION_RETURN_TYPE> preQuery) {
 		getPreQueryEmitterImpl().addPrequery(preQuery);
+		if(preQuery.getExecutionOrder()==null)
+			preQuery.setExecutionOrder(executionOrderCounter++);
 		return this;
 	}
 

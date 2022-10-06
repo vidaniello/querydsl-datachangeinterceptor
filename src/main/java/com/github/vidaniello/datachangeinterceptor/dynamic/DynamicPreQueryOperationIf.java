@@ -6,7 +6,8 @@ import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainer
 
 public interface DynamicPreQueryOperationIf<OPERATION_TYPE extends Serializable, OPERATION_RETURN_TYPE extends Serializable> extends Serializable {
 
-	public int getExecutionOrder();
+	public Integer getExecutionOrder();
+	public DynamicPreQueryOperationIf<OPERATION_TYPE, OPERATION_RETURN_TYPE> setExecutionOrder(Integer executionOrder);
 	
 	public void computeValue(PreQueryMapContainerIf container, Object... inputs) throws Exception;
 	

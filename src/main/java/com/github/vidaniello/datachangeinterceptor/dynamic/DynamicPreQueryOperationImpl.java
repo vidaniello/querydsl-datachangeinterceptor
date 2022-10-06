@@ -25,7 +25,7 @@ public class DynamicPreQueryOperationImpl<OPERATION_TYPE extends Serializable, O
 	
 	private String code;
 	private OPERATION_TYPE operation;
-	private int executionOrder;
+	private Integer executionOrder;
 	private DynamicStrategy strategy;
 	
 	private Date lastExecutionTime;
@@ -68,11 +68,12 @@ public class DynamicPreQueryOperationImpl<OPERATION_TYPE extends Serializable, O
 	}
 	
 	@Override
-	public int getExecutionOrder() {
+	public Integer getExecutionOrder() {
 		return executionOrder;
 	}
 	
-	public DynamicPreQueryOperationImpl<OPERATION_TYPE, OPERATION_RETURN_TYPE> setExecutionOrder(int executionOrder) {
+	@Override
+	public DynamicPreQueryOperationImpl<OPERATION_TYPE, OPERATION_RETURN_TYPE> setExecutionOrder(Integer executionOrder) {
 		this.executionOrder = executionOrder;
 		return this;
 	}

@@ -49,6 +49,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	/*private transient Callable<SQLQuery<Tuple>> queryOfCycle;*/
 	
 	private Set<DataField<?>> newAlignmentFields;
+	private boolean isDefaultQueryExecuted;
 	
 	
 	/*
@@ -76,7 +77,14 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			newAlignmentFields = new HashSet<>();
 		return newAlignmentFields;
 	}
-		
+	
+	boolean isDefaultQueryExecuted() {
+		return isDefaultQueryExecuted;
+	}
+	void setDefaultQueryExecuted(boolean isDefaultQueryExecuted) {
+		this.isDefaultQueryExecuted = isDefaultQueryExecuted;
+	}
+	
 	public synchronized Deque<Date> getTimeQueries() {
 		if(timeQueries==null)
 			timeQueries = new LinkedList<>();
@@ -315,8 +323,13 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		
 		//dopo l'iterazione, dopo la prima per la precisione, 
 		//i fields trovati come nuovi, e quindi dì allineamento
-		//vanno puliti
-		getNewAlignmentFields().clear();
+		//vanno puliti, solo se non ci sono RangeWhere, e se ci sono, 
+		//solo se la rangeWhere di default è stata chiamata almeno una volta
+		if(getCfg().getRangeWheres().isEmpty())
+			getNewAlignmentFields().clear();
+		else
+			if(isDefaultQueryExecuted())
+				getNewAlignmentFields().clear();
 		
 		//ciclo per trovare le entità cancellate e marcarle come cancellate
 		findDeletedDataChangeTableEntity(qProcess, timeBeginQuery, primaryKeyFinded, entitiesTouched);

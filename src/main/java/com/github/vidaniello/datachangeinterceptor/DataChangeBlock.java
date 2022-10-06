@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicPreQueryOperationIf;
 import com.github.vidaniello.datachangeinterceptor.jms.EntityTouchEvent;
 import com.github.vidaniello.datachangeinterceptor.jms.UtilForJMS;
+import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryEmitterIf;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerAndEmitterAbstract;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -38,6 +39,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	private static Logger log = LogManager.getLogger();
 	
 	/*private ConnectionParameters connectionParameters;*/
+	private int executionOrder;
 	private Set<DataChangeTable> observedTables;
 	private Metadates metadates;
 	private String[] blockName;
@@ -61,6 +63,14 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		this.blockName = blockName;
 	}
 	
+	public int getExecutionOrder() {
+		return executionOrder;
+	}
+	
+	public DataChangeBlock setExecutionOrder(int executionOrder) {
+		this.executionOrder = executionOrder;
+		return this;
+	}
 	
 	
 	public Metadates getMetadates() {

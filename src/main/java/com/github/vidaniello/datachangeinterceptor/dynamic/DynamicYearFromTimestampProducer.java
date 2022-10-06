@@ -14,9 +14,6 @@ public class DynamicYearFromTimestampProducer implements DynamicConstantsProduce
 
 	private DynamicConstantsProducerIf<Timestamp> fromDateProducer;
 
-	private int timeAmount;
-	private int calendarField;
-
 	private DynamicYearFromTimestampProducer() {
 
 	}
@@ -32,24 +29,6 @@ public class DynamicYearFromTimestampProducer implements DynamicConstantsProduce
 	public DynamicYearFromTimestampProducer setFromDateProducer(
 			DynamicConstantsProducerIf<Timestamp> fromDateProducer) {
 		this.fromDateProducer = fromDateProducer;
-		return this;
-	}
-
-	public int getTimeAmount() {
-		return timeAmount;
-	}
-
-	public DynamicYearFromTimestampProducer setTimeAmount(int timeAmount) {
-		this.timeAmount = timeAmount;
-		return this;
-	}
-
-	public int getCalendarField() {
-		return calendarField;
-	}
-
-	public DynamicYearFromTimestampProducer setCalendarField(int calendarField) {
-		this.calendarField = calendarField;
 		return this;
 	}
 

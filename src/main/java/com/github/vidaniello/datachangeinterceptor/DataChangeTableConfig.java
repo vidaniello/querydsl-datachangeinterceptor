@@ -241,7 +241,7 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	}
 	
 	
-	private Deque<RangeWhere> getRangeWheres() {
+	Deque<RangeWhere> getRangeWheres() {
 		if(rangeWheres==null)
 			rangeWheres = new LinkedList<>();
 		return rangeWheres;
@@ -428,6 +428,10 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 						toret = ((DynamicJoinTuple)tup).appendJoin(mapContainer, toret);
 					else
 						toret = ((JoinTuple)tup).appendJoin(toret);
+				
+				//set if is default query executed
+				if(rWhere.isDefaultQuery())
+					dct.setDefaultQueryExecuted(true);
 				
 				break;
 			}
