@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.instrument.Instrumentation;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	private Set<DataChangeTable> observedTables;
 	private Metadates metadates;
 	private String[] blockName;
+	private String subname;
 	private DBTemplate dbTemplate;
 	private Long millisecBeetwenTableQuery;
 	private MasterKeyPattern masterKeyPattern;
@@ -59,8 +61,30 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	
 	//private List<DynamicPreQueryOperationIf<?, ?>> blockPreQueries;
 	
+	private Integer calendarFieldAmount;
+	private Integer calendarField;
+	
 	public DataChangeBlock(String... blockName) {
 		this.blockName = blockName;
+	}
+	
+	public String getSubname() {
+		if(subname==null)
+			return "";
+		return subname;
+	}
+	
+	public DataChangeBlock setSubname(String subname) {
+		this.subname = subname;
+		return this;
+	}
+	
+	private transient String _blockNamePlusSubname;
+	public String getBlockNamePlusSubName() {
+		if(_blockNamePlusSubname==null) 
+			_blockNamePlusSubname = Stream.of(getBlockName()).collect(Collectors.joining(UtilForJMS.dafault_jmsPathSeparator)) 
+				+ UtilForJMS.dafault_jmsPathSeparator+getSubname();
+		return _blockNamePlusSubname;
 	}
 	
 	public int getExecutionOrder() {
@@ -283,6 +307,9 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> queryAll(Connection sqlConnection) throws Exception {
 		Map<DataChangeTable, Set<DataChangeTableEntity>> touched = new HashMap<>();
 		
+		if(!checkIfCanQueries())
+			return touched;
+		
 		Date timeEvent = new Date();
 		
 		Statistics stat = new Statistics(this, timeEvent);
@@ -312,11 +339,43 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		
 		stat.endTimeQueries();
 		
-		log.trace("DataBlock '"+ Stream.of(getBlockName()).collect(Collectors.joining(UtilForJMS.dafault_jmsPathSeparator))+"' stats: "+stat);
+		log.trace("DataBlock '" + getBlockNamePlusSubName() + "' stats: "+stat);
 		
 		return touched;
 	}
 		
+	public Integer getCalendarFieldAmount() {
+		return calendarFieldAmount;
+	}
+	
+	public DataChangeBlock setCalendarFieldAmount(Integer calendarFieldAmount) {
+		this.calendarFieldAmount = calendarFieldAmount;
+		return this;
+	}
+	
+	public Integer getCalendarField() {
+		return calendarField;
+	}
+	
+	public DataChangeBlock setCalendarField(Integer calendarField) {
+		this.calendarField = calendarField;
+		return this;
+	}
+	
+	public synchronized boolean checkIfCanQueries() {
+		
+		if(lastRequestTime==null)
+			return true;
+		
+		if(getCalendarFieldAmount()==null && getCalendarField()==null)
+			return true;
+		
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(lastRequestTime);
+		cal.add(getCalendarField(), getCalendarFieldAmount());
+		
+		return new Date().after(cal.getTime());
+	}
 	
 	/*
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> queryAll(DataSource ds) throws Exception {
