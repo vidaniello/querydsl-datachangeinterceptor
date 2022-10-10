@@ -112,9 +112,13 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	}
 	
 	
-	public DataChangeTableConfig setModeWalkAndDeleteByDiscriminator(boolean modeWalkAndDeleteByDiscriminator, DynamicRangeComparatorIf<?> dynRange) {
+	public DataChangeTableConfig setModeWalkAndDeleteByDiscriminator(
+			boolean modeWalkAndDeleteByDiscriminator, 
+			DynamicRangeComparatorIf<?> dynRange/*, 
+			DataChangeTable tableToPassRemovedEntitiesByDiscriminator*/) {
 		this.modeWalkAndDeleteByDiscriminator = modeWalkAndDeleteByDiscriminator;
 		this.dynRangeComparator = dynRange;
+		/*this.tableToPassRemovedEntitiesByDiscriminator = tableToPassRemovedEntitiesByDiscriminator;*/
 		return this;
 	}
 	

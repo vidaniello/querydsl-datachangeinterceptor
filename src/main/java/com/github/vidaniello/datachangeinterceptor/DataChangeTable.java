@@ -25,7 +25,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.SQLQuery;
 
-public class DataChangeTable implements Serializable, StatisticsCollector/*, PreQueryMapContainer*/ {
+public class DataChangeTable implements Serializable, StatisticsCollector/*, PreQueryMapContainer*/, DataChangeTableEntityContainer {
 
 	/**
 	 * 
@@ -51,7 +51,10 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	private Set<DataField<?>> newAlignmentFields;
 	private boolean isDefaultQueryExecuted;
 	
-	
+	/**
+	 * Table used to move removed entities if configuration is set appropriately 
+	 */
+	private DataChangeTableEntityContainer backTable;
 	/*
 	 * private long repetAfter = 10000;
 	 */
@@ -118,6 +121,14 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		return getCfg().getExecutionOrder();
 	}
 	
+	public DataChangeTableEntityContainer getBackTable() {
+		return backTable;
+	}
+	
+	public DataChangeTable setBackTable(DataChangeTableEntityContainer backTable) {
+		this.backTable = backTable;
+		return this;
+	}
 	/*
 	@Override
 	public synchronized Map<String, Serializable> getLastPrequeryValues() {
@@ -230,6 +241,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		return masterKeys;
 	}
 	
+	@Override
 	public synchronized Map<Serializable, DataChangeTableEntity> getEntities() {
 		if(entities==null)
 			entities = new HashMap<>();
@@ -563,8 +575,16 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		log.debug(mess);
 		
 		if(!dcteToRemove.isEmpty()) {
-			log.debug(dcteToRemove.size()+ " table entities will be removed form trackchange.");
-			getEntities().keySet().removeAll(dcteToRemove);
+			if(getBackTable()==null) {
+				log.debug(dcteToRemove.size()+ " table entities will be removed form trackchange.");
+				getEntities().keySet().removeAll(dcteToRemove);
+			} else {
+				log.debug(dcteToRemove.size()+ " table entities will be passed to '"+getBackTable().getTableName()+"' table in the '"+getBackTable().getParentBlockName()+"' block.");
+				Map<Serializable,DataChangeTableEntity> entitiesToBePassed = new HashMap<>();
+				dcteToRemove.forEach(key->entitiesToBePassed.put(key, getEntities().remove(key)));
+				getBackTable().passEntities(entitiesToBePassed);
+			}
+			
 		}
 		
 		/*
@@ -594,6 +614,24 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			
 		}
 			*/	
+	}
+	
+	@Override
+	public synchronized void passEntities(Map<Serializable,DataChangeTableEntity> entitiesToBePassed) {
+		entitiesToBePassed.forEach((key, val)->{
+			val.setParent(this);
+			getEntities().put(key, val);
+		});
+	}
+	
+	@Override
+	public String getTableName() {
+		return getCfg().getTableName();
+	}
+	
+	@Override
+	public String getParentBlockName() {
+		return getParent().getBlockNamePlusSubName();
 	}
 	
 	private void markDataChangeTableEntityDeleted(Date timeOccured, DataChangeTableEntity entity) {
