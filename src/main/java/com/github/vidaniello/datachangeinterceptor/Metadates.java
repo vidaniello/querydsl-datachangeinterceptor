@@ -28,4 +28,8 @@ public class Metadates implements Serializable {
 			metadates = new HashMap<>();
 		return metadates;
 	}
+	
+	void merge(Metadates toMerge) {
+		toMerge.getMetadates().forEach((key,val)->getMetadates().put(key, val));
+	}
 }

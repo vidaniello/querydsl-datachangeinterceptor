@@ -11,7 +11,7 @@ import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainer
  * @author Vincenzo D'Aniello (vidaniello@gmail.com) github.com/vidaniello
  *
  */
-public class DynamicPastYearProducer extends DynamicDateTimeProducerAbstract<Integer> {
+public class DynamicPastYearProducer extends DynamicDateTimeProducerAbstract<Integer, DynamicPastYearProducer> {
 
 	/**
 	 * 

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-public abstract class DynamicDateTimeProducerAbstract<T extends Serializable & Comparable<?>> implements DynamicConstantsProducerIf<T>{
+public abstract class DynamicDateTimeProducerAbstract<T extends Serializable & Comparable<?>, IMPLEMENTATION extends DynamicConstantsProducerIf<T>> extends CalendarFieldsSetter<IMPLEMENTATION> implements DynamicConstantsProducerIf<T>{
 
 	/**
 	 * 

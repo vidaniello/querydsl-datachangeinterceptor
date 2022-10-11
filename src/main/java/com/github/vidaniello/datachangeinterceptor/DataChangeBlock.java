@@ -25,6 +25,7 @@ import com.github.vidaniello.datachangeinterceptor.jms.EntityTouchEvent;
 import com.github.vidaniello.datachangeinterceptor.jms.UtilForJMS;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryEmitterIf;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerAndEmitterAbstract;
+import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerIf;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 
@@ -63,6 +64,8 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	
 	private Integer calendarFieldAmount;
 	private Integer calendarField;
+	
+	private PreQueryMapContainerIf preQueryContainer;
 	
 	public DataChangeBlock(String... blockName) {
 		this.blockName = blockName;
@@ -119,6 +122,16 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return statistics;
 	}
 	
+	public PreQueryMapContainerIf getPreQueryContainer() {
+		if(preQueryContainer==null)
+			preQueryContainer = this;
+		return preQueryContainer;
+	}
+	
+	public DataChangeBlock setPreQueryContainer(PreQueryMapContainerIf preQueryContainer) {
+		this.preQueryContainer = preQueryContainer;
+		return this;
+	}
 	
 	
 	/*
@@ -318,7 +331,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		
 		//Block prequeries
 		for(DynamicPreQueryOperationIf<?, ?> dpqo : getSortedPreQueries())
-			dpqo.computeValue(this, sqlConnection, getDbTemplate().getSQLTemplate());
+			dpqo.computeValue(getPreQueryContainer(), sqlConnection, getDbTemplate().getSQLTemplate());
 		
 		
 		boolean firstTable = true;
@@ -411,5 +424,20 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return toret;
 	}
 	 */
+	
+	public synchronized String getListWatchedEntitiesFromMasterTable() {
+		DataChangeTable dct = getMasterTable();
+		if(dct!=null)
+			return getBlockNamePlusSubName()+": n. "+
+		dct.getEntities().values().stream().filter(dcte->{return !dcte.isMarkAsDeleted();}).count()+
+		" (\n"+dct.getEntities().keySet().stream().map(key->{
+				DataChangeTableEntity dcte = dct.getEntities().get(key);
+				if(!dcte.isMarkAsDeleted())
+					return "\t"+key.toString() + " " + dcte.getLastDiscriminatorFieldValue().toString();
+				else
+					return "\t"+key.toString() + " " + dcte.getLastDiscriminatorFieldValue().toString()+" (MARKED DELETED)";
+			}).collect(Collectors.joining("\n")) +"\n)";
+		else return "";
+	}
 
 }

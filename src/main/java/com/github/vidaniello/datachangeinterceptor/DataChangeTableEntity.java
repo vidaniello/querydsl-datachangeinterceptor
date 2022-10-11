@@ -194,6 +194,34 @@ public class DataChangeTableEntity implements Serializable {
 		return null;
 	}
 	
+	
+	synchronized void merge(DataChangeTableEntity entityToMerge) {
+		getMetadates().merge(entityToMerge.getMetadates());
+		
+		
+		//Field exsist
+		for(DataChangeFieldEvents<?> dcfe : getFieldsEvents()) 
+			for(DataChangeFieldEvents<?> dcfeToMerge : entityToMerge.getFieldsEvents()) 
+				if(dcfe.getDataField().equals(dcfeToMerge.getDataField())) {
+					dcfe.merge(dcfeToMerge);
+					break;
+				}
+				
+		//cycle for new fields
+		next_toMerge:
+		for(DataChangeFieldEvents<?> dcfeToMerge : entityToMerge.getFieldsEvents()) {
+			
+			for(DataChangeFieldEvents<?> dcfe : getFieldsEvents()) 
+				if(dcfeToMerge.getDataField().equals(dcfe.getDataField())) 
+					continue next_toMerge;
+				
+			getFieldsEvents().add(dcfeToMerge);
+		}
+		
+		
+		getEntityEvents().addAll(entityToMerge.getEntityEvents());
+	}
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(key);

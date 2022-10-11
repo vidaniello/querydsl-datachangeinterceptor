@@ -57,7 +57,9 @@ public class DataChangeFieldEvents<T extends Serializable & Comparable<?>> imple
 	}
 
 	
-	
+	void merge(DataChangeFieldEvents<?> toMerge) {
+		getHistorical().addAll(toMerge.getHistorical());
+	}
 	
 	
 	

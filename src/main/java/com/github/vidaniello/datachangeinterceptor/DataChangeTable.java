@@ -232,7 +232,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	*/
 	
 	public SqlQueryInformationProcess getQuery(Connection sqlConnection) throws Exception{
-		return getCfg().getConstructedQuery(sqlConnection, getParent(), this);
+		return getCfg().getConstructedQuery(sqlConnection, getParent().getPreQueryContainer(), this);
 	}
 	
 	public synchronized Set<String> getMasterKeys() {
@@ -303,7 +303,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		//Table prequeries
 		
 		for(DynamicPreQueryOperationIf<?, ?> dpqo : getCfg().getSortedPreQueries())
-			dpqo.computeValue(getParent(), sqlConnection, getCfg().getTemplate());
+			dpqo.computeValue(getParent().getPreQueryContainer(), sqlConnection, getCfg().getTemplate());
 		
 		Set<DataChangeTableEntity> entitiesTouched = new HashSet<>();
 		
@@ -491,7 +491,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 					
 						
 						if(getCfg().isModeWalkAndDeleteByDiscriminator()) {
-							if(getCfg().getDynRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+							if(getCfg().getDynRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
 								
 								markDataChangeTableEntityDeleted(timeOccured, val);
 								synchronized (entitiesTouched) {entitiesTouched.add(val);}
@@ -543,9 +543,10 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 						try {
 							
 							if(getCfg().isModeWalkAndDeleteByDiscriminator()) {
-								if(getCfg().getDynRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+								
+								if(getCfg().getDynRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
 									
-									if(qProcess.getRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+									if(qProcess.getRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
 										markDataChangeTableEntityDeleted(timeOccured, val);
 										synchronized (entitiesTouched) {entitiesTouched.add(val);}
 									}
@@ -555,7 +556,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 								
 							} else {
 							
-								if(qProcess.getRangeComparator().isEntityInRange(getParent(), val.getLastDiscriminatorFieldValue())) {
+								if(qProcess.getRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
 									markDataChangeTableEntityDeleted(timeOccured, val);
 									synchronized (entitiesTouched) {entitiesTouched.add(val);}
 								}
@@ -575,11 +576,13 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		log.debug(mess);
 		
 		if(!dcteToRemove.isEmpty()) {
+			String listOfEntities = "("+dcteToRemove.stream().map(elm->elm.toString()).collect(Collectors.joining(", "))+")";
 			if(getBackTable()==null) {
-				log.debug(dcteToRemove.size()+ " table entities will be removed form trackchange.");
+				log.debug(dcteToRemove.size()+ " table entities will be removed form trackchange "+listOfEntities+" of table "+getCfg().getTableName()+" from block "+getParentBlockName()+".");
 				getEntities().keySet().removeAll(dcteToRemove);
 			} else {
-				log.debug(dcteToRemove.size()+ " table entities will be passed to '"+getBackTable().getTableName()+"' table in the '"+getBackTable().getParentBlockName()+"' block.");
+				log.debug(dcteToRemove.size()+ " table entities will be passed to '"+getBackTable().getTableName()+"' table in the '"+getBackTable().getParentBlockName()+"' block"
+						+ " "+listOfEntities+".");
 				Map<Serializable,DataChangeTableEntity> entitiesToBePassed = new HashMap<>();
 				dcteToRemove.forEach(key->entitiesToBePassed.put(key, getEntities().remove(key)));
 				getBackTable().passEntities(entitiesToBePassed);
@@ -619,10 +622,18 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	@Override
 	public synchronized void passEntities(Map<Serializable,DataChangeTableEntity> entitiesToBePassed) {
 		entitiesToBePassed.forEach((key, val)->{
-			val.setParent(this);
-			getEntities().put(key, val);
+			
+			if(getEntities().containsKey(key)) {
+				getEntities().get(key).merge(val);
+				log.debug("Entity table '"+key+"' merged with recent clone");
+			} else {
+				val.setParent(this);
+				getEntities().put(key, val);
+			}
+
 		});
 	}
+	
 	
 	@Override
 	public String getTableName() {

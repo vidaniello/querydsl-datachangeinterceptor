@@ -5,7 +5,7 @@ import java.util.Calendar;
 
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryMapContainerIf;
 
-public class DynamicTimestampFromTimestampProducer implements DynamicConstantsProducerIf<Timestamp> {
+public class DynamicTimestampFromTimestampProducer extends CalendarFieldsSetter<DynamicTimestampFromTimestampProducer> implements DynamicConstantsProducerIf<Timestamp> {
 
 	/**
 	 * 
@@ -16,7 +16,7 @@ public class DynamicTimestampFromTimestampProducer implements DynamicConstantsPr
 
 	private int timeAmount;
 	private int calendarField;
-
+	
 	private DynamicTimestampFromTimestampProducer() {
 
 	}
@@ -52,7 +52,7 @@ public class DynamicTimestampFromTimestampProducer implements DynamicConstantsPr
 		this.calendarField = calendarField;
 		return this;
 	}
-
+	
 	@Override
 	public Timestamp getValue(PreQueryMapContainerIf mapContainer) throws Exception {
 
@@ -62,6 +62,8 @@ public class DynamicTimestampFromTimestampProducer implements DynamicConstantsPr
 
 		cal.setTime(fromDate);
 		cal.add(getCalendarField(), getTimeAmount());
+		
+		fixCalendar(cal);
 
 		return new Timestamp(cal.getTime().getTime());
 	}
