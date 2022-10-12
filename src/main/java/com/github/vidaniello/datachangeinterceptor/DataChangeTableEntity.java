@@ -110,11 +110,13 @@ public class DataChangeTableEntity implements Serializable {
 		return getFieldsEvents().stream().filter(dcfe->dcfe.getDataField().getField().equals(df)).findFirst().orElse(null);
 	}
 	
+	
 	public Deque<EntityChangeEvent> getEntityEvents() {
 		if(entityEvents==null)
 			entityEvents = new LinkedList<>();
 		return entityEvents;
 	}
+	
 	
 	public void addEntityChangeEvent(EntityChangeEvent evt) {
 		getEntityEvents().addLast(evt);

@@ -241,12 +241,14 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		return masterKeys;
 	}
 	
+	
 	@Override
 	public synchronized Map<Serializable, DataChangeTableEntity> getEntities() {
 		if(entities==null)
 			entities = new HashMap<>();
 		return entities;
 	}
+	
 	
 	public DataChangeTableEntity getByMasterKey(String masterKey) {
 		return getEntities().values().stream().filter(dcte->dcte.getMasterKey().equals(masterKey)).findAny().orElse(null);
@@ -340,7 +342,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 		if(getCfg().getRangeWheres().isEmpty())
 			getNewAlignmentFields().clear();
 		else
-			if(isDefaultQueryExecuted())
+			if(isDefaultQueryExecuted() || getCfg().getRangeWheres().size()==1)
 				getNewAlignmentFields().clear();
 		
 		//ciclo per trovare le entità cancellate e marcarle come cancellate

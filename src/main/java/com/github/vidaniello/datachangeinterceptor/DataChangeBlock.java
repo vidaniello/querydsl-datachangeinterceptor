@@ -106,11 +106,13 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return metadates;
 	}
 
+	
 	public Set<DataChangeTable> getObservedTables() {
 		if(observedTables==null)
 			observedTables = new HashSet<>();
 		return observedTables;
 	}
+	
 	
 	public DataChangeTable getMasterTable() {
 		return getObservedTables().stream().filter(dct->dct.getCfg().isMasterTable()).findFirst().orElse(null);
@@ -429,14 +431,18 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		DataChangeTable dct = getMasterTable();
 		if(dct!=null)
 			return getBlockNamePlusSubName()+": n. "+
-		dct.getEntities().values().stream().filter(dcte->{return !dcte.isMarkAsDeleted();}).count()+
-		" (\n"+dct.getEntities().keySet().stream().map(key->{
+		dct.getEntities().values().stream().filter(dcte->{return !dcte.isMarkAsDeleted();}).count()
+		
+		+" (\n"+dct.getEntities().keySet().stream().map(key->{
 				DataChangeTableEntity dcte = dct.getEntities().get(key);
 				if(!dcte.isMarkAsDeleted())
 					return "\t"+key.toString() + " " + dcte.getLastDiscriminatorFieldValue().toString();
 				else
 					return "\t"+key.toString() + " " + dcte.getLastDiscriminatorFieldValue().toString()+" (MARKED DELETED)";
-			}).collect(Collectors.joining("\n")) +"\n)";
+			}).collect(Collectors.joining("\n")) +"\n)"
+			
+			;
+			
 		else return "";
 	}
 
