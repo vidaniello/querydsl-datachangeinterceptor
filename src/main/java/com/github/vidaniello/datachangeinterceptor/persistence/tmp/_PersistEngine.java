@@ -1,13 +1,13 @@
-package com.github.vidaniello.datachangeinterceptor.persistence;
+package com.github.vidaniello.datachangeinterceptor.persistence.tmp;
 
 import java.io.File;
 
-public class PersistEngine {
+public class _PersistEngine {
 	
 	public static final String default_baseAppFolderName = "dataChangeInterceptor";
 	
-	private static final PersistEngine pEngine = new PersistEngine();
-	public static final PersistEngine get() {
+	private static final _PersistEngine pEngine = new _PersistEngine();
+	public static final _PersistEngine get() {
 		return pEngine;
 	}
 	

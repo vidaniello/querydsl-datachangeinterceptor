@@ -1,20 +1,20 @@
-package com.github.vidaniello.datachangeinterceptor.persistence;
+package com.github.vidaniello.datachangeinterceptor.persistence.tmp;
 
 import java.io.Serializable;
 
-public class PersistentWrapper<T extends Serializable> {
+public class _PersistentWrapper<T extends Serializable> {
 	
-	private PersistenObject parent;
+	private _PersistenObject parent;
 	private String name;
 	private T value;
 	private boolean retrived;
 	//private PersistOperator operator;
 	
-	private PersistentWrapper() {
+	private _PersistentWrapper() {
 		
 	}
 	
-	public PersistentWrapper(PersistenObject parent, String name) {
+	public _PersistentWrapper(_PersistenObject parent, String name) {
 		this.parent = parent;
 		this.name = name;
 	}

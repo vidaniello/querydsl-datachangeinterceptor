@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.github.vidaniello.datachangeinterceptor.dynamic.DynamicPreQueryOperationIf;
+import com.github.vidaniello.datachangeinterceptor.jms.BlockTouchEvent;
 import com.github.vidaniello.datachangeinterceptor.jms.EntityTouchEvent;
 import com.github.vidaniello.datachangeinterceptor.jms.UtilForJMS;
 import com.github.vidaniello.datachangeinterceptor.prequery.PreQueryEmitterIf;
@@ -51,7 +52,9 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	private MasterKeyPattern masterKeyPattern;
 	
 	private Date lastRequestTime;
-	private Map<DataChangeTable, Set<DataChangeTableEntity>> lastTouched;
+	//private Map<DataChangeTable, Set<DataChangeTableEntity>> lastTouched;
+	private BlockTouchEvent lastBlockToucEvent;
+	private boolean isSendLasBlockTouchEventtOnJms;
 	
 	
 	//private Set<Serializable> lastMasterTablePrimaryKey;
@@ -320,6 +323,7 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	}
 	
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> queryAll(Connection sqlConnection) throws Exception {
+	
 		Map<DataChangeTable, Set<DataChangeTableEntity>> touched = new HashMap<>();
 		
 		if(!checkIfCanQueries())
@@ -350,7 +354,8 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		}
 		
 		lastRequestTime = timeEvent;
-		lastTouched = touched;
+		//lastTouched = touched;
+		lastBlockToucEvent = UtilForJMS.getLastTouchEvents(this, touched, getLastRequestTime());
 		
 		stat.endTimeQueries();
 		
@@ -406,8 +411,14 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	}
 	*/
 	
+	/*
 	public synchronized Map<DataChangeTable, Set<DataChangeTableEntity>> getLastTouchedTableEntities() {
 		return lastTouched;
+	}
+	*/
+	
+	public BlockTouchEvent getLastBlockToucEvent() {
+		return lastBlockToucEvent;
 	}
 	
 	public synchronized Date getLastRequestTime() {
