@@ -23,18 +23,19 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 	
 	public DiskPersistManager(String baseDirectory, String repoName) {
 		super(repoName);
-		this.baseDirectory = baseDirectory+File.separator+repoName+File.separator;
+		//this.baseDirectory = baseDirectory+File.separator+repoName+File.separator;
+		this.baseDirectory = baseDirectory.endsWith(File.separator) ? baseDirectory : baseDirectory+File.separator;
 	}
 	
 	private boolean dirsChecked;
-	private String getBasePath() {
+	private synchronized String getBasePath() {
 		if(!dirsChecked) 
 			new File(baseDirectory).mkdirs();
 		return baseDirectory;
 	}
 	
 	@Override
-	public synchronized void write(String key, VALUE value) throws IOException {
+	public void write(String key, VALUE value) throws IOException {
 		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getBasePath()+key));
 		oos.writeObject(value);
 		oos.close();
@@ -43,7 +44,7 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public synchronized VALUE read(String key) throws IOException, ClassNotFoundException {
+	public VALUE read(String key) throws IOException, ClassNotFoundException {
 		File file = new File(getBasePath()+key);
 		if(!file.exists())return null;
 		try(ObjectInputStream bis = new ObjectInputStream(new FileInputStream(file));){
@@ -52,9 +53,10 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 	}
 
 	@Override
-	public synchronized void delete(String key) throws IOException {
+	public void delete(String key) throws IOException {
 		File file = new File(getBasePath()+key);
-		if(!file.delete())throw new IOException("Unable to delete "+getBasePath()+key);
+		if(!file.delete())
+			throw new IOException("Unable to delete "+getBasePath()+key);
 	}
 	
 

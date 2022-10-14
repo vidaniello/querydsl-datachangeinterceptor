@@ -35,6 +35,19 @@ public class PersistentObjectReferenceImpl<
 		return key;
 	}
 
+	private transient PersistentObjectReferenceInfo persistentObjectReferenceInfo;
+	
+	PersistentObjectReferenceInfo getPersistentObjectReferenceInfo() {
+		return persistentObjectReferenceInfo;
+	}
+	
+	void setPersistentObjectReferenceInfo(PersistentObjectReferenceInfo persistentObjectReferenceInfo) {
+		this.persistentObjectReferenceInfo = persistentObjectReferenceInfo;
+	}
+	
+	
+	
+	
 	private transient PersistManager<KEY,VALUE> repository;
 	private synchronized PersistManager<KEY,VALUE> getRepository(){
 		if(repository==null)
@@ -49,7 +62,10 @@ public class PersistentObjectReferenceImpl<
 	
 	@Override
 	public void setValue(VALUE value) throws IOException {
-		getRepository().write(getKey(), value);
+		if(value!=null)
+			getRepository().write(getKey(), value);
+		else
+			getRepository().delete(getKey());
 	}
 
 }

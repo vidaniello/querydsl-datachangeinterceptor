@@ -3,6 +3,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 import java.io.IOException;
 import java.io.Serializable;
 
+@PersistentRepositoryConfig
 public class SimpleContainerObject implements Serializable{
 	
 	/**
@@ -32,11 +33,14 @@ public class SimpleContainerObject implements Serializable{
 	}
 	
 	
-	
+	@PersistentEntity
 	public PersistentObjectReference<String, SimplePojo> getSimplePojoReference() {
 		if(simplePojo==null)
+			/*
 			simplePojo = new PersistentObjectReferenceImpl<>(
 					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName(), getId()+".1");
+					*/
+			simplePojo = PersistRepositoy.getInstance().getReference();
 		return simplePojo;
 	}
 	

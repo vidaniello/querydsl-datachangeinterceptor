@@ -37,6 +37,18 @@ public class TestPersistence {
 	}
 	
 	@Test
+	public void test2() {
+		try {
+			
+			SimpleContainerObject sco = new SimpleContainerObject();
+			SimplePojo sp = sco.getSimplePojo();
+
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+	
+	@Test
 	public void test1() {
 		try {
 
@@ -50,9 +62,12 @@ public class TestPersistence {
 			String basePath = System.getProperty("user.home")+File.separator+"datachangeinterceptor"+File.separator+"test";
 			
 			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(
-					basePath, SimpleContainerObject.class.getCanonicalName()));
+					basePath+File.separator+SimpleContainerObject.class.getCanonicalName(), 
+					SimpleContainerObject.class.getCanonicalName()
+			));
 			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(
-					basePath, SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()
+					basePath+File.separator+SimpleContainerObject.class.getCanonicalName()+File.separator+SimplePojo.class.getCanonicalName(), 
+					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()
 			));
 			
 			
@@ -65,12 +80,13 @@ public class TestPersistence {
 				sco.setId("1");
 				sco.setSimplePojo(getSimplePojoMock());
 				pm.write("1", sco);
+				
+				sco = pm.read("1");
 			}
 			
-			sco = pm.read("1");
-			
-			
 			SimplePojo sp = sco.getSimplePojo();
+			
+			sp = sco.getSimplePojo();
 			sp.setName("Modified pojo child");
 			sco.setSimplePojo(sp);
 			
