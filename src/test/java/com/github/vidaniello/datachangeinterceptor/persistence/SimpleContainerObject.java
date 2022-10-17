@@ -14,6 +14,8 @@ public class SimpleContainerObject implements Serializable{
 	private String id;
 	private String aField;
 	
+	private PersistentObjectReference<String, SimplePojo> dynamicId;
+	
 	private PersistentObjectReference<String, SimplePojo> simplePojo;
 	
 	public String getId() {
@@ -33,14 +35,14 @@ public class SimpleContainerObject implements Serializable{
 	}
 	
 	
-	@PersistentEntity
+	@PersistentEntity(dynamicKey_name = "id", staticKey = ".simplePojo")
 	public PersistentObjectReference<String, SimplePojo> getSimplePojoReference() {
 		if(simplePojo==null)
 			/*
 			simplePojo = new PersistentObjectReferenceImpl<>(
 					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName(), getId()+".1");
 					*/
-			simplePojo = PersistRepositoy.getInstance().getReference();
+			simplePojo = PersistRepositoy.getInstance().getReference(this);
 		return simplePojo;
 	}
 	
@@ -60,5 +62,8 @@ public class SimpleContainerObject implements Serializable{
 	}
 	*/
 
+	public PersistentObjectReference<String, SimplePojo> getDynamicId() {
+		return dynamicId;
+	}
 	
 }

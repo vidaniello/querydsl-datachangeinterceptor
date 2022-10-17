@@ -13,22 +13,24 @@ public class PersistentObjectReferenceImpl<
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private String repoName;
+	//private String repoName;
 	private KEY key;
 	
 	private PersistentObjectReferenceImpl() {
 		
 	}
 	
-	public PersistentObjectReferenceImpl(String reponame, KEY key) {
-		this.repoName = reponame;
+	public PersistentObjectReferenceImpl(/*String reponame, */KEY key) {
+		//this.repoName = reponame;
 		this.key = key;
 	}
 	
+	/*
 	@Override
 	public String getRepoName() {
 		return repoName;
 	}
+	*/
 	
 	@Override
 	public KEY getKey() {
@@ -37,12 +39,14 @@ public class PersistentObjectReferenceImpl<
 
 	private transient PersistentObjectReferenceInfo persistentObjectReferenceInfo;
 	
-	PersistentObjectReferenceInfo getPersistentObjectReferenceInfo() {
+	@Override
+	public PersistentObjectReferenceInfo getPersistentObjectReferenceInfo() {
 		return persistentObjectReferenceInfo;
 	}
 	
-	void setPersistentObjectReferenceInfo(PersistentObjectReferenceInfo persistentObjectReferenceInfo) {
+	PersistentObjectReferenceImpl<KEY,VALUE> setPersistentObjectReferenceInfo(PersistentObjectReferenceInfo persistentObjectReferenceInfo) {
 		this.persistentObjectReferenceInfo = persistentObjectReferenceInfo;
+		return this;
 	}
 	
 	
@@ -51,7 +55,7 @@ public class PersistentObjectReferenceImpl<
 	private transient PersistManager<KEY,VALUE> repository;
 	private synchronized PersistManager<KEY,VALUE> getRepository(){
 		if(repository==null)
-			repository = PersistRepositoy.getInstance().getRepository(getRepoName());
+			repository = PersistRepositoy.getInstance().getRepository(this);
 		return repository;
 	}
 	

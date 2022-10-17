@@ -13,14 +13,27 @@ public @interface PersistentEntity {
 
 	/**
 	 * The name of the entity repository, default value 
-	 * turn on VALUE.canonicalClass Name() of the method or class annotated with
+	 * turn on VALUE.canonicalClass Name() of the method annotated with.
 	 * @return
 	 */
 	String repoName() default "";
 	
 	/**
-	 * The key identi of the persisted entity
+	 * The static key identy of the persisted entity.
 	 * @return
 	 */
-	String key() default "";
+	String staticKey() default "";
+	
+	/**
+	 * The dynamic part of the key reflection access type, default FIELD
+	 * @return
+	 */
+	DynamicKeyAccessType dynamicKey_accessType() default DynamicKeyAccessType.FIELD;
+	
+	/**
+	 * The name of the field or of the method who reflection call to generate
+	 * the dynamic key. If not set, the reflection don't call anything.
+	 * @return
+	 */
+	String dynamicKey_name() default "";
 }

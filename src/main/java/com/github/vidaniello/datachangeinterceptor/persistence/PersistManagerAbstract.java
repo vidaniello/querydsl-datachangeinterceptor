@@ -1,10 +1,12 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.io.Serializable;
+import java.util.Properties;
 
 public abstract class PersistManagerAbstract<KEY extends Serializable, VALUE extends Serializable> implements PersistManager<KEY, VALUE> {
 
 	private String repoName;
+	private Properties properties;
 	
 	public PersistManagerAbstract(String repoName) {
 		if(repoName==null)
@@ -19,6 +21,20 @@ public abstract class PersistManagerAbstract<KEY extends Serializable, VALUE ext
 	@Override
 	public String getRepoName() {
 		return repoName;
+	}
+	
+	@Override
+	public void setPropertiesFile(Properties properties) {
+		this.properties = properties;
+	}
+	
+	public Properties getProperties() {
+		return properties;
+	}
+	
+	
+	public void setPropertiesFile(Property[] properties) {
+		
 	}
 	
 	/*

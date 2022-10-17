@@ -7,6 +7,9 @@ class PersistentObjectReferenceInfo {
 	private Class<?> keyType;
 	private Class<?> valueType;
 	private PersistentEntity persistentEntityAnnotation;
+	private PersistentRepositoryConfig objectReferencePersistentRepositoryConfigAnnotation;
+	
+	private String calculatedRepoName;
 	
 	PersistentObjectReferenceInfo() {
 		
@@ -55,6 +58,27 @@ class PersistentObjectReferenceInfo {
 	
 	PersistentRepositoryConfig getValueClassPersistentRepositoryConfigAnnotation() {
 		return getValueType().getAnnotation(PersistentRepositoryConfig.class);
+	}
+	
+	PersistentRepositoryConfig getObjectReferencePersistentRepositoryConfigAnnotation() {
+		return objectReferencePersistentRepositoryConfigAnnotation;
+	}
+	
+	void setObjectReferencePersistentRepositoryConfigAnnotation(
+			PersistentRepositoryConfig objectReferencePersistentRepositoryConfigAnnotation) {
+		this.objectReferencePersistentRepositoryConfigAnnotation = objectReferencePersistentRepositoryConfigAnnotation;
+	}
+	
+	public String getCalculatedRepoName() {
+		if(calculatedRepoName==null) {
+			
+			
+			calculatedRepoName = getValueType().getCanonicalName();
+			
+			
+			
+		}
+		return calculatedRepoName;
 	}
 	
 }

@@ -41,6 +41,7 @@ public class TestPersistence {
 		try {
 			
 			SimpleContainerObject sco = new SimpleContainerObject();
+			sco.setId("1");
 			SimplePojo sp = sco.getSimplePojo();
 
 		} catch (Exception e) {
