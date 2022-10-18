@@ -9,14 +9,16 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(TYPE_PARAMETER)
 public @interface Property {
-
-	public static final String s = "";
 	
 	/**
-	 * Key of property. Special key is <i>java.lang.System.getProperty</i>, then
-	 * the value specifie
+	 * Key of property.
 	 * @return
 	 */
 	String key();
+	
+	/**
+	 * Value of property.
+	 * @return
+	 */
 	String value();
 }

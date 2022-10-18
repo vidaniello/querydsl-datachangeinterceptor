@@ -62,13 +62,18 @@ public class TestPersistence {
 			*/
 			String basePath = System.getProperty("user.home")+File.separator+"datachangeinterceptor"+File.separator+"test";
 			
-			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(
+			System.setProperty(
+					DiskPersistManager.datachangeinterceptor_diskpersistence_basepath_systemProperty, 
+					DiskPersistManager.defaultBasePath+File.separator+"test"
+				);
+			
+			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(/*
 					basePath+File.separator+SimpleContainerObject.class.getCanonicalName(), 
-					SimpleContainerObject.class.getCanonicalName()
+					SimpleContainerObject.class.getCanonicalName()*/
 			));
-			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(
+			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(/*
 					basePath+File.separator+SimpleContainerObject.class.getCanonicalName()+File.separator+SimplePojo.class.getCanonicalName(), 
-					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()
+					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()*/
 			));
 			
 			

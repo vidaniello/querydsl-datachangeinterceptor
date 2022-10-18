@@ -1,5 +1,7 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+import java.lang.reflect.InvocationTargetException;
+
 class PersistentObjectReferenceInfo {
 	
 	private Class<?> relationClass;
@@ -10,6 +12,7 @@ class PersistentObjectReferenceInfo {
 	private PersistentRepositoryConfig objectReferencePersistentRepositoryConfigAnnotation;
 	
 	private String calculatedRepoName;
+	//private Class<? extends PersistManagerAbstract<?,?>> calculatedRepositoryImplementationClass;
 	
 	PersistentObjectReferenceInfo() {
 		
@@ -69,16 +72,56 @@ class PersistentObjectReferenceInfo {
 		this.objectReferencePersistentRepositoryConfigAnnotation = objectReferencePersistentRepositoryConfigAnnotation;
 	}
 	
+	private PersistentRepositoryConfig getLogicPersistentRepositoryConfig() {
+		
+		
+		//Hierachy the PersistentRepositoryConfig annotation upon the method who retur the PersistentObjectReference is the first choice
+		PersistentRepositoryConfig toret = getObjectReferencePersistentRepositoryConfigAnnotation();
+		
+		//Else, if exisist, the annotation Upon the class of the value is the second choice, othewise null
+		return getValueClassPersistentRepositoryConfigAnnotation();
+	}
+	
 	public String getCalculatedRepoName() {
 		if(calculatedRepoName==null) {
 			
+			PersistentRepositoryConfig persistentRepositoryConfig = getLogicPersistentRepositoryConfig();
 			
-			calculatedRepoName = getValueType().getCanonicalName();
+			if(persistentRepositoryConfig==null)
+				calculatedRepoName = getValueType().getCanonicalName();
+			else {
+				
+			}
 			
 			
 			
 		}
+		
 		return calculatedRepoName;
+	}
+		
+	
+	public PersistManager<?,?> initializeNewRepositoryImplemetation() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		
+		PersistManager<?,?> toret = null;
+		
+		PersistentRepositoryConfig persistentRepositoryConfig = getLogicPersistentRepositoryConfig();
+		
+		//Default repository implementation
+		Class<? extends PersistManager> clazz = InMemoryPersistManager.class;
+		
+		if(persistentRepositoryConfig!=null)
+			clazz = persistentRepositoryConfig.repositoryClassImplementation();
+		
+		PersistManagerAbstract<?,?> newInstance = (PersistManagerAbstract<?, ?>) clazz.getConstructor().newInstance();
+		newInstance.setRepoName(getCalculatedRepoName());
+		newInstance.loadPersistentRepositoryConfig(persistentRepositoryConfig);
+		
+		
+		toret = newInstance;
+		
+		
+		return toret;
 	}
 	
 }

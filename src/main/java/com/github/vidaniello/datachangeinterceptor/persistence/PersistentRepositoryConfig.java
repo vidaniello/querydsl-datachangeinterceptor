@@ -11,6 +11,16 @@ import java.lang.annotation.Target;
 @Target({ TYPE, METHOD })
 public @interface PersistentRepositoryConfig {
 
+	/**
+	 * The name of the entity repository, default value 
+	 * turn on VALUE.canonicalClass Name() of the method annotated with
+	 * or the class who is annotated with.
+	 * @return
+	 */
+	String repoName() default "";
+	
+	Class<? extends PersistManager> repositoryClassImplementation() default InMemoryPersistManager.class;
 	
 	Property[] properties() default {};
+	SystemProperty[] systemProperties() default {};
 }

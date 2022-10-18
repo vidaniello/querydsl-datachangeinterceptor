@@ -1,5 +1,6 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+
 public class SimplePojo implements PersistentObject<Integer> {
 
 	/**

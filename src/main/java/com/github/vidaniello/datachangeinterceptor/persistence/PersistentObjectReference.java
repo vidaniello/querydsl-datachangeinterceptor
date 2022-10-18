@@ -12,6 +12,6 @@ public interface PersistentObjectReference
 	//public String getRepoName();
 	public PersistentObjectReferenceInfo getPersistentObjectReferenceInfo();
 	public KEY getKey();
-	public VALUE getValue() throws ClassNotFoundException, IOException;
-	public void setValue(VALUE value) throws IOException;
+	public VALUE getValue() throws Exception;
+	public void setValue(VALUE value) throws Exception;
 }

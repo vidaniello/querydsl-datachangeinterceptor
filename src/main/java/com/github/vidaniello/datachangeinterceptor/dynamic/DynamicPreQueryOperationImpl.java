@@ -223,7 +223,7 @@ public class DynamicPreQueryOperationImpl<OPERATION_TYPE extends Serializable, O
 	
 	@Override
 	public int compareTo(DynamicPreQueryOperationImpl<OPERATION_TYPE, OPERATION_RETURN_TYPE> o) {
-		return new Integer(this.executionOrder).compareTo(o.getExecutionOrder());
+		return this.executionOrder.compareTo(o.getExecutionOrder());
 	}
 	
 	

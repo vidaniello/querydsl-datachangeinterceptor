@@ -1,6 +1,5 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public class PersistentObjectReferenceImpl<
@@ -53,19 +52,19 @@ public class PersistentObjectReferenceImpl<
 	
 	
 	private transient PersistManager<KEY,VALUE> repository;
-	private synchronized PersistManager<KEY,VALUE> getRepository(){
+	private synchronized PersistManager<KEY,VALUE> getRepository() throws Exception{
 		if(repository==null)
 			repository = PersistRepositoy.getInstance().getRepository(this);
 		return repository;
 	}
 	
 	@Override
-	public VALUE getValue() throws ClassNotFoundException, IOException {
+	public VALUE getValue() throws Exception {
 		return getRepository().read(getKey());
 	}
 	
 	@Override
-	public void setValue(VALUE value) throws IOException {
+	public void setValue(VALUE value) throws Exception {
 		if(value!=null)
 			getRepository().write(getKey(), value);
 		else

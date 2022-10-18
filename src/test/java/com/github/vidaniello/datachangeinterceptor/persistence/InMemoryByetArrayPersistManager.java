@@ -19,8 +19,15 @@ public class InMemoryByetArrayPersistManager<KEY extends Serializable, VALUE ext
 		return repo;
 	}
 	
-	public InMemoryByetArrayPersistManager(String repoName) {
+	/*
+	public InMemoryByetArrayPersistManager(String repoName) throws Exception {
 		super(repoName);
+	}
+	*/
+	
+	@Override
+	void initRepository() {
+		
 	}
 	
 	@Override

@@ -9,5 +9,11 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(TYPE_PARAMETER)
 public @interface SystemProperty {
-
+	
+	/**
+	 * Key of property to get from System.getProperty(...).
+	 * @return
+	 */
+	String key();
+	
 }

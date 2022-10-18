@@ -3,6 +3,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -39,11 +40,11 @@ public class PersistRepositoy {
 	}
 	
 	
-	public <KEY extends Serializable,VALUE extends Serializable> PersistManager<KEY,VALUE> getRepository(PersistentObjectReference<KEY, VALUE> objRef){
+	public <KEY extends Serializable,VALUE extends Serializable> PersistManager<KEY,VALUE> getRepository(PersistentObjectReference<KEY, VALUE> objRef) throws Exception{
 		return getRepository(getAndCreateReposotory(objRef));
 	}
 	
-	private String getAndCreateReposotory(PersistentObjectReference<?, ?> objRef) {
+	private String getAndCreateReposotory(PersistentObjectReference<?, ?> objRef) throws Exception {
 		
 		PersistentObjectReferenceInfo pori = objRef.getPersistentObjectReferenceInfo();
 
@@ -56,6 +57,9 @@ public class PersistRepositoy {
 		
 		synchronized (this) {
 			if(!getRepositories().containsKey(repoName)) {
+				
+				//Create repository
+				PersistManager<?,?> pManager = pori.initializeNewRepositoryImplemetation();
 				
 			}
 		}
@@ -114,12 +118,17 @@ public class PersistRepositoy {
 					
 					//Construction of key
 					
-					//Static key, default empty String
-					key = persistentEntityAnnotation.staticKey();
+					if(!persistentEntityAnnotation.patternKey().isEmpty())
+						getDynamicKeyByPattern(persistentEntityAnnotation, dynamicKeyInstance);
+					else {
 					
-					//Dynamic key
-					if(!persistentEntityAnnotation.dynamicKey_name().isEmpty() && dynamicKeyInstance!=null) 
-						key = getDynamicKey(persistentEntityAnnotation, dynamicKeyInstance) + key;
+						//Static key, default empty String
+						key = persistentEntityAnnotation.staticKey();
+					
+						//Dynamic key
+						if(!persistentEntityAnnotation.dynamicKey_name().isEmpty() && dynamicKeyInstance!=null) 
+							key = getDynamicKey(persistentEntityAnnotation, dynamicKeyInstance) + key;
+					}
 					
 				}
 				
@@ -139,6 +148,12 @@ public class PersistRepositoy {
 		return null;
 	}
 	
+	
+	private String getDynamicKeyByPattern(PersistentEntity persistentEntityAnnotation, Object dynamicKeyInstance) throws Exception {
+		String pattern = persistentEntityAnnotation.patternKey();
+		
+		throw new Exception("Pattern not implemented");
+	}
 	
 	private String getDynamicKey(PersistentEntity persistentEntityAnnotation, Object dynamicKeyInstance) throws Exception {
 				

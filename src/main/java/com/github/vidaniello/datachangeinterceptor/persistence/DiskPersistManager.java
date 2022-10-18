@@ -8,8 +8,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import com.github.vidaniello.datachangeinterceptor.Statics;
+
 public class DiskPersistManager<VALUE extends Serializable> extends PersistManagerAbstract<String, VALUE> {
 
+	public static final String defaultBasePath = System.getProperty("user.home")+File.separator+Statics.appName;
+	public static final String datachangeinterceptor_diskpersistence_basepath_systemProperty = Statics.appName+".diskpersistence.basepath";
+	public static final String diskpersistence_repositoryPath = "repositoryPath";
+	
 	/*
 	private Map<KEY,byte[]> repo;
 	
@@ -21,10 +27,38 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 	
 	private String baseDirectory;
 	
-	public DiskPersistManager(String baseDirectory, String repoName) {
+	
+	
+	/*
+	public DiskPersistManager(String baseDirectory, String repoName) throws Exception {
 		super(repoName);
 		//this.baseDirectory = baseDirectory+File.separator+repoName+File.separator;
 		this.baseDirectory = baseDirectory.endsWith(File.separator) ? baseDirectory : baseDirectory+File.separator;
+	}
+	*/
+	
+	@Override
+	void initRepository() {
+		
+		//first from this properties object
+		String basePathFromSystemProperty = getProperties().getProperty(datachangeinterceptor_diskpersistence_basepath_systemProperty);
+		
+		if(basePathFromSystemProperty==null)
+			//else from System.property
+			basePathFromSystemProperty = System.getProperty(datachangeinterceptor_diskpersistence_basepath_systemProperty);
+		
+		if(basePathFromSystemProperty==null)
+			//otherwise default base path
+			basePathFromSystemProperty = defaultBasePath;
+		
+		
+		String repositoryPath = getProperties().getProperty(diskpersistence_repositoryPath);
+		
+		if(repositoryPath==null)
+			//Default path is the repo name
+			repositoryPath = getRepoName();
+		
+		this.baseDirectory = basePathFromSystemProperty.endsWith(File.separator) ? basePathFromSystemProperty : basePathFromSystemProperty+File.separator;
 	}
 	
 	private boolean dirsChecked;

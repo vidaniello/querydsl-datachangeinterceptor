@@ -2,12 +2,10 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Properties;
 
 public interface PersistManager<KEY extends Serializable, VALUE extends Serializable> {
 	
 	public String getRepoName();
-	public void setPropertiesFile (Properties properties);
 	
 	//public void write(PersistentObjectReference<KEY,VALUE> object) throws IOException;
 	public void write(KEY key, VALUE value) throws IOException;

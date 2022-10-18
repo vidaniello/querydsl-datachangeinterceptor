@@ -12,13 +12,6 @@ import java.lang.annotation.Target;
 public @interface PersistentEntity {
 
 	/**
-	 * The name of the entity repository, default value 
-	 * turn on VALUE.canonicalClass Name() of the method annotated with.
-	 * @return
-	 */
-	String repoName() default "";
-	
-	/**
 	 * The static key identy of the persisted entity.
 	 * @return
 	 */
@@ -36,4 +29,16 @@ public @interface PersistentEntity {
 	 * @return
 	 */
 	String dynamicKey_name() default "";
+	
+	/**
+	 * The pattern key contain both static and dynamic value.<br>
+	 * The static part can be written with normal text, like for example {@code parentFieldName.}, and
+	 * the dynamimc part can be enclosed in ${...} pattern, then, a text without the round brackets will
+	 * use reflection on the field of the keyInstance, othewise, a text end with the round brackets will
+	 * use reflection on the method of the keyInstance.<br>
+	 * For example:  '${id}.fatherEntity' or '${getId()}.fatherEntity.${anotherField}'
+	 * 
+	 * @return
+	 */
+	String patternKey() default "";
 }

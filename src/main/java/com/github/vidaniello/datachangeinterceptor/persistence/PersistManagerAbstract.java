@@ -7,34 +7,54 @@ public abstract class PersistManagerAbstract<KEY extends Serializable, VALUE ext
 
 	private String repoName;
 	private Properties properties;
-	
-	public PersistManagerAbstract(String repoName) {
-		if(repoName==null)
-			repoName = this.getClass().getCanonicalName();
-		this.repoName = repoName;
-	}
+	private PersistentRepositoryConfig persistentRepositoryConfig;
 	
 	public PersistManagerAbstract() {
-		this(null);
+		
 	}
-	
+	/*
+	public PersistManagerAbstract(String repoName) throws Exception {
+		if(repoName==null)
+			//repoName = this.getClass().getCanonicalName();
+			throw new Exception("Repository name is mandatory");
+		this.repoName = repoName;
+	}
+	*/
+		
 	@Override
 	public String getRepoName() {
 		return repoName;
 	}
 	
-	@Override
-	public void setPropertiesFile(Properties properties) {
-		this.properties = properties;
+	public void setRepoName(String repoName) {
+		this.repoName = repoName;
 	}
-	
+		
 	public Properties getProperties() {
+		if(properties==null)
+			properties = new Properties();
 		return properties;
 	}
 	
+	public void loadPersistentRepositoryConfig(PersistentRepositoryConfig persistentRepositoryConfig) {
+		if(persistentRepositoryConfig!=null) {
+			this.persistentRepositoryConfig = persistentRepositoryConfig;
+			
+			setProperties(persistentRepositoryConfig.properties());
+			setSystemProperties(persistentRepositoryConfig.systemProperties());
+		}
+	}
 	
-	public void setPropertiesFile(Property[] properties) {
-		
+	abstract void initRepository();
+	
+	private void setProperties(Property[] properties) {
+		for(Property prop : properties)
+			getProperties().put(prop.key(), prop.value());
+	}
+	
+	private void setSystemProperties(SystemProperty[] properties) {
+		for(SystemProperty prop : properties)
+			getProperties().put(prop.key(), System.getProperty(prop.key()));
 	}
 	
 	/*
