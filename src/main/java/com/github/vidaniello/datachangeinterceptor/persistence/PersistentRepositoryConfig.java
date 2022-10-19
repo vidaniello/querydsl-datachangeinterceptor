@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })
 public @interface PersistentRepositoryConfig {
-
+	
 	/**
 	 * The name of the entity repository, default value 
 	 * turn on VALUE.canonicalClass Name() of the method annotated with

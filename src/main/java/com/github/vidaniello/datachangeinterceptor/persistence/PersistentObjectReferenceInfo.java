@@ -1,7 +1,5 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.lang.reflect.InvocationTargetException;
-
 class PersistentObjectReferenceInfo {
 	
 	private Class<?> relationClass;
@@ -72,56 +70,42 @@ class PersistentObjectReferenceInfo {
 		this.objectReferencePersistentRepositoryConfigAnnotation = objectReferencePersistentRepositoryConfigAnnotation;
 	}
 	
-	private PersistentRepositoryConfig getLogicPersistentRepositoryConfig() {
+	PersistentRepositoryConfig getLogicPersistentRepositoryConfig() {
 		
 		
 		//Hierachy the PersistentRepositoryConfig annotation upon the method who retur the PersistentObjectReference is the first choice
 		PersistentRepositoryConfig toret = getObjectReferencePersistentRepositoryConfigAnnotation();
 		
+		if(toret!=null)
+			return toret;
+		
 		//Else, if exisist, the annotation Upon the class of the value is the second choice, othewise null
 		return getValueClassPersistentRepositoryConfigAnnotation();
 	}
 	
-	public String getCalculatedRepoName() {
+	/**
+	 * Default repoName is the canonical class name of the value type.<br>
+	 * If exsist the persistent repository config, and the value repoName is not
+	 * empty, the repo name will be the value of the annotation repoName field.
+	 * @return
+	 */
+	String getCalculatedRepoName() {
+		
 		if(calculatedRepoName==null) {
+			
+			calculatedRepoName = getValueType().getCanonicalName();
 			
 			PersistentRepositoryConfig persistentRepositoryConfig = getLogicPersistentRepositoryConfig();
 			
-			if(persistentRepositoryConfig==null)
-				calculatedRepoName = getValueType().getCanonicalName();
-			else {
-				
-			}
-			
-			
-			
+			if(persistentRepositoryConfig!=null)
+				if(!persistentRepositoryConfig.repoName().isEmpty())
+					calculatedRepoName = persistentRepositoryConfig.repoName();			
 		}
 		
 		return calculatedRepoName;
 	}
 		
 	
-	public PersistManager<?,?> initializeNewRepositoryImplemetation() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		
-		PersistManager<?,?> toret = null;
-		
-		PersistentRepositoryConfig persistentRepositoryConfig = getLogicPersistentRepositoryConfig();
-		
-		//Default repository implementation
-		Class<? extends PersistManager> clazz = InMemoryPersistManager.class;
-		
-		if(persistentRepositoryConfig!=null)
-			clazz = persistentRepositoryConfig.repositoryClassImplementation();
-		
-		PersistManagerAbstract<?,?> newInstance = (PersistManagerAbstract<?, ?>) clazz.getConstructor().newInstance();
-		newInstance.setRepoName(getCalculatedRepoName());
-		newInstance.loadPersistentRepositoryConfig(persistentRepositoryConfig);
-		
-		
-		toret = newInstance;
-		
-		
-		return toret;
-	}
+
 	
 }

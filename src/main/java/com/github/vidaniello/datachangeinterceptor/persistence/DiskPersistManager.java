@@ -14,7 +14,7 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 
 	public static final String defaultBasePath = System.getProperty("user.home")+File.separator+Statics.appName;
 	public static final String datachangeinterceptor_diskpersistence_basepath_systemProperty = Statics.appName+".diskpersistence.basepath";
-	public static final String diskpersistence_repositoryPath = "repositoryPath";
+	public static final String propertyName_repositoryPath = "repositoryPath";
 	
 	/*
 	private Map<KEY,byte[]> repo;
@@ -52,13 +52,19 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 			basePathFromSystemProperty = defaultBasePath;
 		
 		
-		String repositoryPath = getProperties().getProperty(diskpersistence_repositoryPath);
+		String repositoryPath = getProperties().getProperty(propertyName_repositoryPath);
 		
 		if(repositoryPath==null)
 			//Default path is the repo name
 			repositoryPath = getRepoName();
+		else
+			if(File.separator.equals("\\"))
+				repositoryPath = repositoryPath.replace("/", File.separator);
+			else 
+				repositoryPath = repositoryPath.replace("\\", File.separator);
 		
-		this.baseDirectory = basePathFromSystemProperty.endsWith(File.separator) ? basePathFromSystemProperty : basePathFromSystemProperty+File.separator;
+		this.baseDirectory = (basePathFromSystemProperty.endsWith(File.separator) ? basePathFromSystemProperty : basePathFromSystemProperty+File.separator) + 
+				(repositoryPath.endsWith(File.separator) ? repositoryPath : repositoryPath+File.separator);
 	}
 	
 	private boolean dirsChecked;

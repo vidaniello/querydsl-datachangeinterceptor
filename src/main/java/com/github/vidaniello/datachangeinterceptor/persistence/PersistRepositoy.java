@@ -8,12 +8,21 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class PersistRepositoy {
+	
+	/**
+	 * If change it, change also int the annotation {@link com.github.vidaniello.datachangeinterceptor.persistence.PersistentRepositoryConfig PersistentRepositoryConfig}
+	 */
+	public static final Class<? extends PersistManager> defaultRepositoryImplementationClass = InMemoryPersistManager.class;
+	
 	
 	private static PersistRepositoy singleton = new PersistRepositoy();
 	public static PersistRepositoy getInstance() {
@@ -59,8 +68,8 @@ public class PersistRepositoy {
 			if(!getRepositories().containsKey(repoName)) {
 				
 				//Create repository
-				PersistManager<?,?> pManager = pori.initializeNewRepositoryImplemetation();
-				
+				PersistManager<?,?> pManager = initializeNewRepositoryImplemetation(pori);
+				registerRepository(pManager);
 			}
 		}
 		
@@ -68,122 +77,30 @@ public class PersistRepositoy {
 		
 	}
 	
-	
+	private PersistManager<?,?> initializeNewRepositoryImplemetation(PersistentObjectReferenceInfo pori) throws Exception {
+		
+		PersistManager<?,?> toret = null;
+		
+		PersistentRepositoryConfig persistentRepositoryConfig = pori.getLogicPersistentRepositoryConfig();
+		
+		//Default repository implementation
+		Class<? extends PersistManager> clazz = defaultRepositoryImplementationClass;
+		
+		if(persistentRepositoryConfig!=null)
+			clazz = persistentRepositoryConfig.repositoryClassImplementation();
+		
+		PersistManagerAbstract<?,?> newInstance = (PersistManagerAbstract<?, ?>) clazz.getConstructor().newInstance();
+		newInstance.setRepoName(pori.getCalculatedRepoName());
+		newInstance.loadPersistentRepositoryConfig(persistentRepositoryConfig);
+		newInstance.initRepository();
+		
+		toret = newInstance;
+		
+		
+		return toret;
+	}
 	
 
 	
-	@SuppressWarnings("unchecked")
-	public <KEY extends Serializable, VALUE extends Serializable>  PersistentObjectReference<KEY,VALUE> getReference(Object dynamicKeyInstance){
-		
-		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
-		
-		String callingClass = ste[2].getClassName();
-		String methodName = ste[2].getMethodName();
-		
-			try {
-				PersistentObjectReferenceInfo pori = new PersistentObjectReferenceInfo();
-				
-				Class<?> relationClass = Class.forName(callingClass);
-				
-				pori.setRelationClass(relationClass);
-				pori.setRelationClassPersistentRepositoryConfigAnnotation(relationClass.getAnnotation(PersistentRepositoryConfig.class));
-				
-				Method meth = relationClass.getMethod(methodName);
-				meth.setAccessible(true);
-				
-				if(!meth.getReturnType().equals(PersistentObjectReference.class))
-					throw new Exception("The method not return an PersistentObjectReference object!");
-				
-				Type[] genRetTypes = ((ParameterizedType)meth.getGenericReturnType()).getActualTypeArguments();
-				
-				Class<KEY> classKey = (Class<KEY>) genRetTypes[0];
-				Class<VALUE> classValue = (Class<VALUE>) genRetTypes[1];
-				
-				pori.setKeyType(classKey);
-				pori.setValueType(classValue);
-				
-				//String repoName = classValue.getCanonicalName();
-				String key = "";
-				
-				PersistentEntity persistentEntityAnnotation = meth.getAnnotation(PersistentEntity.class);
-				pori.setObjectReferencePersistentRepositoryConfigAnnotation(meth.getAnnotation(PersistentRepositoryConfig.class));
-				
-				if(persistentEntityAnnotation!=null) {
-					
-					pori.setPersistentEntityAnnotation(persistentEntityAnnotation);
-					
-					//if(!persistentEntityAnnotation.repoName().isEmpty()) 
-						//repoName = persistentEntityAnnotation.repoName();
-						
-					
-					//Construction of key
-					
-					if(!persistentEntityAnnotation.patternKey().isEmpty())
-						getDynamicKeyByPattern(persistentEntityAnnotation, dynamicKeyInstance);
-					else {
-					
-						//Static key, default empty String
-						key = persistentEntityAnnotation.staticKey();
-					
-						//Dynamic key
-						if(!persistentEntityAnnotation.dynamicKey_name().isEmpty() && dynamicKeyInstance!=null) 
-							key = getDynamicKey(persistentEntityAnnotation, dynamicKeyInstance) + key;
-					}
-					
-				}
-				
-				
-				PersistentObjectReference<KEY, VALUE> ret = (PersistentObjectReference<KEY, VALUE>) 
-						new PersistentObjectReferenceImpl<>(/*repoName, */(KEY)key)
-							.setPersistentObjectReferenceInfo(pori);
-				
-				
-				int i = 0;
-				
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-			}
-		
-		
-		return null;
-	}
-	
-	
-	private String getDynamicKeyByPattern(PersistentEntity persistentEntityAnnotation, Object dynamicKeyInstance) throws Exception {
-		String pattern = persistentEntityAnnotation.patternKey();
-		
-		throw new Exception("Pattern not implemented");
-	}
-	
-	private String getDynamicKey(PersistentEntity persistentEntityAnnotation, Object dynamicKeyInstance) throws Exception {
-				
-		Object dynamicKey = null;
-		
-		if(persistentEntityAnnotation.dynamicKey_accessType().equals(DynamicKeyAccessType.FIELD)) {
-						
-			Field field = dynamicKeyInstance.getClass().getDeclaredField(persistentEntityAnnotation.dynamicKey_name());
-			field.setAccessible(true);
-			
-			if(PersistentObjectReference.class.isAssignableFrom(field.getType()))
-				throw new Exception("Call dynamic id from 'PersistentObjectReference' not yet implemented");
-			
-			dynamicKey = field.get(dynamicKeyInstance);
-			
-		} else if(persistentEntityAnnotation.dynamicKey_accessType().equals(DynamicKeyAccessType.METHOD)) {
-			
-			Method method = dynamicKeyInstance.getClass().getDeclaredMethod(persistentEntityAnnotation.dynamicKey_name());
-			method.setAccessible(true);
-			
-			if(PersistentObjectReference.class.isAssignableFrom(method.getReturnType()))
-				throw new Exception("Call dynamic id from 'PersistentObjectReference' not yet implemented");
-			
-			dynamicKey = method.invoke(dynamicKeyInstance);
-		}
-		
-		if(dynamicKey==null)
-			throw new Exception("Dynamic key cannot be 'null'");
-		
-		return dynamicKey.toString();
-	}
 
 }

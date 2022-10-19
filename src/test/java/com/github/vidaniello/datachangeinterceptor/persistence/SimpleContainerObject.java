@@ -1,9 +1,10 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
-@PersistentRepositoryConfig
+@PersistentRepositoryConfig()
 public class SimpleContainerObject implements Serializable{
 	
 	/**
@@ -17,6 +18,8 @@ public class SimpleContainerObject implements Serializable{
 	private PersistentObjectReference<String, SimplePojo> dynamicId;
 	
 	private PersistentObjectReference<String, SimplePojo> simplePojo;
+	
+	private Collection<PersistentObjectReference<String, SimplePojo>> simplePojos; 
 	
 	public String getId() {
 		return id;
@@ -34,25 +37,29 @@ public class SimpleContainerObject implements Serializable{
 		this.aField = aField;
 	}
 	
-	
-	@PersistentEntity(dynamicKey_name = "id", staticKey = ".simplePojo")
-	public PersistentObjectReference<String, SimplePojo> getSimplePojoReference() {
+	@PersistentRepositoryConfig(
+			repositoryClassImplementation = DiskPersistManager.class, 
+			repoName = "SimpleContainerObject.simplePojo",
+			properties = {
+					@Property(key = DiskPersistManager.propertyName_repositoryPath, value = "SimpleContainerObject/simplePojo")
+			})
+	@PersistentEntity(patternKey = "${id}.id(${getId()}).simplePojo")
+	public PersistentObjectReference<String, SimplePojo> getSimplePojoReference() throws Exception {
+		// simplePojo = new PersistentObjectReferenceImpl<>(SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName(), getId()+".1");
 		if(simplePojo==null)
-			/*
-			simplePojo = new PersistentObjectReferenceImpl<>(
-					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName(), getId()+".1");
-					*/
-			simplePojo = PersistRepositoy.getInstance().getReference(this);
+			simplePojo = PersistenceReferenceFactory.getReference(this);
 		return simplePojo;
-	}
+	}	
 	
-	public SimplePojo getSimplePojo() throws ClassNotFoundException, IOException {
+	public SimplePojo getSimplePojo() throws Exception {
 		return getSimplePojoReference().getValue();
 	}
 	
-	public void setSimplePojo(SimplePojo simplePojo) throws IOException {
+	public void setSimplePojo(SimplePojo simplePojo) throws Exception {
 		getSimplePojoReference().setValue(simplePojo);
 	}
+	
+	
 	
 	
 	
@@ -62,8 +69,30 @@ public class SimpleContainerObject implements Serializable{
 	}
 	*/
 
-	public PersistentObjectReference<String, SimplePojo> getDynamicId() {
+	public PersistentObjectReference<String, SimplePojo> getDynamicIdRef() throws Exception {
+		if(dynamicId==null)
+			dynamicId = PersistenceReferenceFactory.getReference(this);
 		return dynamicId;
 	}
+	
+	public SimplePojo getDynamicId() throws Exception {
+		return getDynamicIdRef().getValue();
+	}
+	
+	public void setDynamicId(SimplePojo simplePojo) throws Exception {
+		getDynamicIdRef().setValue(simplePojo);
+	}
+	
+	
+	
+	
+	
+	private Collection<PersistentObjectReference<String, SimplePojo>> getSimplePojos() throws Exception {
+		if(simplePojos==null)
+			simplePojos = PersistenceReferenceFactory.getCollectionReference(this);
+		return simplePojos;
+	}
+	
+
 	
 }

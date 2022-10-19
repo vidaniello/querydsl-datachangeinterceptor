@@ -24,6 +24,7 @@ public class PersistentObjectReferenceImpl<
 		this.key = key;
 	}
 	
+	
 	/*
 	@Override
 	public String getRepoName() {
@@ -43,11 +44,11 @@ public class PersistentObjectReferenceImpl<
 		return persistentObjectReferenceInfo;
 	}
 	
+
 	PersistentObjectReferenceImpl<KEY,VALUE> setPersistentObjectReferenceInfo(PersistentObjectReferenceInfo persistentObjectReferenceInfo) {
 		this.persistentObjectReferenceInfo = persistentObjectReferenceInfo;
 		return this;
 	}
-	
 	
 	
 	

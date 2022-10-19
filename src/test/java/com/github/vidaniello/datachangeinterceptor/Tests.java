@@ -1,8 +1,14 @@
 package com.github.vidaniello.datachangeinterceptor;
 
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
 import org.junit.Test;
+
+import com.github.vidaniello.datachangeinterceptor.persistence.PersistRepositoy;
+import com.github.vidaniello.datachangeinterceptor.persistence.PersistenceReferenceFactory;
 
 public class Tests {
 	
@@ -25,11 +31,16 @@ public class Tests {
 	
 	
 	@Test
-	public void test1() {
-		try {
-			log.trace("trace message");
-			log.debug("debug message");
-			throw new Exception("Test exception");
+	public void testDynamicPattern() {
+		try {			
+			String dynamicKey = "fasdf ${ds_ds} se we ${c2D_c$()} sas a${} sdfsdf${f}";
+			
+			Map<String,String> result = PersistenceReferenceFactory.workDynamicKey(dynamicKey);
+			
+			Assert.assertTrue(result.size()==3);
+			
+			result.forEach((key,value)->log.debug(key+": "+value));
+			
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

@@ -19,6 +19,11 @@ public class TestPersistence {
 
 		// private org.apache.logging.log4j.Logger log =
 		// org.apache.logging.log4j.LogManager.getLogger();
+		
+		System.setProperty(
+				DiskPersistManager.datachangeinterceptor_diskpersistence_basepath_systemProperty, 
+				DiskPersistManager.defaultBasePath+File.separator+"test"
+			);
 	}
 	
 	private Logger log = LogManager.getLogger();
@@ -43,7 +48,15 @@ public class TestPersistence {
 			SimpleContainerObject sco = new SimpleContainerObject();
 			sco.setId("1");
 			SimplePojo sp = sco.getSimplePojo();
-
+			
+			if(sp==null) 
+				sco.setSimplePojo(getSimplePojoMock());
+			
+			sp = sco.getSimplePojo();
+			
+			
+			
+			int i = 0;
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -52,7 +65,9 @@ public class TestPersistence {
 	@Test
 	public void test1() {
 		try {
+			
 
+			
 			//Init object repositories
 			/*
 			PersistRepositoy.getInstance().registerRepository(new InMemoryByetArrayPersistManager<>(SimpleContainerObject.class.getCanonicalName()));
@@ -60,22 +75,23 @@ public class TestPersistence {
 					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()
 			));
 			*/
-			String basePath = System.getProperty("user.home")+File.separator+"datachangeinterceptor"+File.separator+"test";
+			//String basePath = System.getProperty("user.home")+File.separator+"datachangeinterceptor"+File.separator+"test";
 			
-			System.setProperty(
-					DiskPersistManager.datachangeinterceptor_diskpersistence_basepath_systemProperty, 
-					DiskPersistManager.defaultBasePath+File.separator+"test"
-				);
+
 			
-			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(/*
+			/*
+			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(
 					basePath+File.separator+SimpleContainerObject.class.getCanonicalName(), 
-					SimpleContainerObject.class.getCanonicalName()*/
+					SimpleContainerObject.class.getCanonicalName()
 			));
-			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(/*
+			PersistRepositoy.getInstance().registerRepository(new DiskPersistManager<>(
 					basePath+File.separator+SimpleContainerObject.class.getCanonicalName()+File.separator+SimplePojo.class.getCanonicalName(), 
-					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()*/
+					SimpleContainerObject.class.getCanonicalName()+"."+SimplePojo.class.getCanonicalName()
 			));
+			*/
 			
+			
+
 			
 			
 			PersistManager<String, SimpleContainerObject> pm = PersistRepositoy.getInstance().getRepository(SimpleContainerObject.class.getCanonicalName());
