@@ -3,7 +3,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 import java.io.IOException;
 import java.io.Serializable;
 
-public interface PersistManager<KEY extends Serializable, VALUE extends Serializable> {
+public interface PersistManager<KEY, VALUE> {
 	
 	public String getRepoName();
 	

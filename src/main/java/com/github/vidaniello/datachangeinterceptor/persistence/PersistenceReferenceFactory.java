@@ -20,13 +20,13 @@ public class PersistenceReferenceFactory {
 	private static Logger log = LogManager.getLogger();
 	
 
-	public static <KEY extends Serializable, VALUE extends Serializable>  Collection<PersistentObjectReference<KEY,VALUE>> getCollectionReference(Object dynamicKeyInstance) throws Exception{
+	public static <KEY, VALUE> Collection<PersistentObjectReference<KEY,VALUE>> getCollectionReference(Object dynamicKeyInstance) throws Exception{
 	
 		return null;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <KEY extends Serializable, VALUE extends Serializable>  PersistentObjectReference<KEY,VALUE> getReference(Object dynamicKeyInstance) throws Exception{
+	public static <KEY, VALUE>  PersistentObjectReference<KEY,VALUE> getReference(Object dynamicKeyInstance) throws Exception{
 		
 		PersistentObjectReference<KEY, VALUE> ret = null;
 		
@@ -38,12 +38,14 @@ public class PersistenceReferenceFactory {
 		try {
 			PersistentObjectReferenceInfo pori = new PersistentObjectReferenceInfo();
 			
+			pori.setInstanceForGenerateDynamicKey(dynamicKeyInstance);
+			
 			Class<?> relationClass = Class.forName(callingClass);
 			
 			pori.setRelationClass(relationClass);
 			pori.setRelationClassPersistentRepositoryConfigAnnotation(relationClass.getAnnotation(PersistentRepositoryConfig.class));
 			
-			Method meth = relationClass.getMethod(methodName);
+			Method meth = relationClass.getDeclaredMethod(methodName);
 			meth.setAccessible(true);
 			
 			if(!meth.getReturnType().equals(PersistentObjectReference.class))
@@ -51,8 +53,33 @@ public class PersistenceReferenceFactory {
 			
 			Type[] genRetTypes = ((ParameterizedType)meth.getGenericReturnType()).getActualTypeArguments();
 			
-			Class<KEY> classKey = (Class<KEY>) genRetTypes[0];
-			Class<VALUE> classValue = (Class<VALUE>) genRetTypes[1];
+			Class<KEY> classKey = null;
+			if(Class.class.isAssignableFrom(genRetTypes[0].getClass()))
+					classKey = (Class<KEY>) genRetTypes[0];
+			
+			Class<VALUE> classValue = null;
+			if(Class.class.isAssignableFrom(genRetTypes[1].getClass()))
+				classValue = (Class<VALUE>) genRetTypes[1];
+			else {
+				ParameterizedType parType = ((ParameterizedType)genRetTypes[1]);
+				
+				pori.setValueTypeParametrized(true);
+				pori.setTypeName(parType.getTypeName());
+				Type rawType = parType.getRawType();
+				pori.setRawType(rawType);
+				
+				classValue = (Class<VALUE>) rawType;
+				/*
+				Type[] getActualTypeArguments = parType.getActualTypeArguments();
+				if(Iterable.class.isAssignableFrom((Class<?>)rawType)){
+					classValue = (Class<VALUE>) getActualTypeArguments[0];
+				} else if(Map.class.isAssignableFrom(rawType.getClass())){
+					
+				}
+				*/
+				
+				int i = 0;
+			}
 			
 			pori.setKeyType(classKey);
 			pori.setValueType(classValue);
@@ -67,14 +94,13 @@ public class PersistenceReferenceFactory {
 				
 				pori.setPersistentEntityAnnotation(persistentEntityAnnotation);
 				
+				//Construction of key
+				key = getDynamicKeyByPattern(persistentEntityAnnotation.primaryKey(), dynamicKeyInstance);
+				
 				//if(!persistentEntityAnnotation.repoName().isEmpty()) 
 					//repoName = persistentEntityAnnotation.repoName();
-					
-				
-				//Construction of key
-				
-				if(!persistentEntityAnnotation.patternKey().isEmpty())
-					key = getDynamicKeyByPattern(persistentEntityAnnotation, dynamicKeyInstance);
+							
+				/*
 				else {
 				
 					//Static key, default empty String
@@ -84,7 +110,7 @@ public class PersistenceReferenceFactory {
 					if(!persistentEntityAnnotation.dynamicKey_name().isEmpty() && dynamicKeyInstance!=null) 
 						key = getDynamicKey(persistentEntityAnnotation, dynamicKeyInstance) + key;
 				}
-				
+				*/
 			}
 			
 			ret = (PersistentObjectReference<KEY, VALUE>) 
@@ -98,12 +124,22 @@ public class PersistenceReferenceFactory {
 		return ret;
 	}
 	
-	private static final String dynamicKeyPattern = "\\$\\{([a-zA-Z0-9_\\$\\£çèéù€ì]+?\\(\\))\\}|\\$\\{([a-zA-Z0-9_\\$\\£çèéù€ì]+?)\\}";
-	private static String getDynamicKeyByPattern(PersistentEntity persistentEntityAnnotation, Object dynamicKeyInstance) throws Exception {
 		
-		String dynamicKey = persistentEntityAnnotation.patternKey();
+	
+	
+	private static final String dynamicKeyPattern = "\\$\\{([a-zA-Z0-9_\\$\\£çèéù€ì]+?\\(\\))\\}|\\$\\{([a-zA-Z0-9_\\$\\£çèéù€ì]+?)\\}";
+	public static String getDynamicKeyByPattern(String patt, Object dynamicKeyInstance) throws Exception {
 				
-		Map<String,String> arr = workDynamicKey(dynamicKey);
+		if(patt==null)
+			return "";
+				
+		if(patt.isEmpty())
+			return patt;
+		
+		if(dynamicKeyInstance==null)
+			return patt;
+				
+		Map<String,String> arr = workDynamicKey(patt);
 		Map<String,String> results = new HashMap<>();
 		
 		for(String key : arr.keySet()) {
@@ -115,9 +151,9 @@ public class PersistenceReferenceFactory {
 		}
 		
 		for(String key : results.keySet())
-			dynamicKey = dynamicKey.replace(key, results.get(key));
+			patt = patt.replace(key, results.get(key));
 		
-		return dynamicKey;
+		return patt;
 	}
 	
 	public static Map<String,String> workDynamicKey(String text) {
@@ -133,7 +169,7 @@ public class PersistenceReferenceFactory {
 		
 		return ret;
 	}
-	
+	/*
 	private static String getDynamicKey(PersistentEntity persistentEntityAnnotation, Object dynamicKeyInstance) throws Exception {
 				
 		String dynamicKey = null;
@@ -148,6 +184,7 @@ public class PersistenceReferenceFactory {
 		
 		return dynamicKey.toString();
 	}
+	*/
 	
 	private static Field getField(String fieldName, Object dynamicKeyInstance) throws Exception {
 		return dynamicKeyInstance.getClass().getDeclaredField(fieldName);

@@ -2,10 +2,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.io.Serializable;
 
-public class PersistentObjectReferenceImpl<
-		KEY extends Serializable, 
-		VALUE extends Serializable
-	> implements PersistentObjectReference<KEY, VALUE> {
+public class PersistentObjectReferenceImpl<KEY, VALUE> implements PersistentObjectReference<KEY, VALUE> {
 
 	/**
 	 * 
@@ -55,7 +52,7 @@ public class PersistentObjectReferenceImpl<
 	private transient PersistManager<KEY,VALUE> repository;
 	private synchronized PersistManager<KEY,VALUE> getRepository() throws Exception{
 		if(repository==null)
-			repository = PersistRepositoy.getInstance().getRepository(this);
+			repository = PersistRepositoyPool.getInstance().getRepository(this);
 		return repository;
 	}
 	

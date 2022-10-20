@@ -1,6 +1,13 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +54,7 @@ public class TestPersistence {
 			
 			SimpleContainerObject sco = new SimpleContainerObject();
 			sco.setId("1");
+			/*
 			SimplePojo sp = sco.getSimplePojo();
 			
 			if(sp==null) 
@@ -54,7 +62,109 @@ public class TestPersistence {
 			
 			sp = sco.getSimplePojo();
 			
+			sco = new SimpleContainerObject();
+			sco.setId("2");
+			if(sco.getSimplePojo()==null)
+				sco.setSimplePojo(getSimplePojoMock());
+			*/
 			
+			
+			
+			if(sco.getListOfStrings()==null) {
+				LinkedList<String> listOfStr = new LinkedList<>();
+				listOfStr.add("c");
+				listOfStr.addFirst("b");
+				listOfStr.addFirst("a");
+				sco.setListOfStrings(listOfStr);
+			} 
+			
+			for(String str : sco.getListOfStrings())
+				log.debug(str);
+			
+			Deque<String> listOfStr = sco.getListOfStrings();
+			listOfStr.pollFirst();
+			sco.setListOfStrings(listOfStr);
+			
+			for(String str : sco.getListOfStrings())
+				log.debug(str);
+			
+			sco.setListOfStrings(null);
+			
+			listOfStr = new LinkedList<>();
+			listOfStr.add("c");
+			listOfStr.addFirst("b");
+			listOfStr.addFirst("a");
+			sco.setListOfStrings(listOfStr);
+			
+			
+			
+			
+			if(sco.getListOfListOfSimplePojo()==null) {
+				LinkedList<List<SimplePojo>> listOfList = new LinkedList<>();
+				
+				List<SimplePojo> list1 = new ArrayList<>();
+				listOfList.add(list1);
+				list1.add(getSimplePojoMock());
+				list1.add(getSimplePojoMock());
+				
+				List<SimplePojo> list2 = new LinkedList<>();
+				listOfList.add(list2);
+				list2.add(getSimplePojoMock());
+				list2.add(getSimplePojoMock());
+				list2.add(getSimplePojoMock());
+				list2.add(getSimplePojoMock());
+				
+				sco.setListOfListOfSimplePojo(listOfList);
+			}
+			
+			for(List<SimplePojo> listOfPojo : sco.getListOfListOfSimplePojo())
+				for(SimplePojo sp : listOfPojo)
+					log.debug(sp.getName());
+			
+			
+			Deque<List<SimplePojo>> listOfList = sco.getListOfListOfSimplePojo();
+			listOfList.pollLast();
+			sco.setListOfListOfSimplePojo(listOfList);
+			
+			for(List<SimplePojo> listOfPojo : sco.getListOfListOfSimplePojo())
+				for(SimplePojo sp : listOfPojo)
+					log.debug(sp.getName());
+			
+			sco.setListOfListOfSimplePojo(null);
+			
+			
+			sco = new SimpleContainerObject();
+			sco.setId("2");
+			
+			listOfList = new LinkedList<>();
+			
+			List<SimplePojo> list1 = new ArrayList<>();
+			listOfList.add(list1);
+			list1.add(getSimplePojoMock());
+			list1.add(getSimplePojoMock());
+			
+			List<SimplePojo> list2 = new LinkedList<>();
+			listOfList.add(list2);
+			list2.add(getSimplePojoMock());
+			list2.add(getSimplePojoMock());
+			list2.add(getSimplePojoMock());
+			list2.add(getSimplePojoMock());
+			
+			sco.setListOfListOfSimplePojo(listOfList);
+			
+			sco = new SimpleContainerObject();
+			sco.setId("1");
+			
+			Map<String, SimplePojo> mapOfSimplePojo = new HashMap<>();
+			mapOfSimplePojo.put("s", getSimplePojoMock());
+			mapOfSimplePojo.put("T", getSimplePojoMock());
+			sco.setMapOfSimplePojo(mapOfSimplePojo);
+			
+			mapOfSimplePojo = sco.getMapOfSimplePojo();
+			for(String key : mapOfSimplePojo.keySet()) {
+				SimplePojo sp = mapOfSimplePojo.get(key);
+				log.debug(key+": "+sp);
+			}
 			
 			int i = 0;
 		} catch (Exception e) {
@@ -94,7 +204,7 @@ public class TestPersistence {
 
 			
 			
-			PersistManager<String, SimpleContainerObject> pm = PersistRepositoy.getInstance().getRepository(SimpleContainerObject.class.getCanonicalName());
+			PersistManager<String, SimpleContainerObject> pm = PersistRepositoyPool.getInstance().getRepository(SimpleContainerObject.class.getCanonicalName());
 						
 			SimpleContainerObject sco = pm.read("1");
 			if(sco==null) {

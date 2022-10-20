@@ -12,7 +12,7 @@ import java.util.Map;
  * @param <KEY>
  * @param <VALUE>
  */
-public class InMemoryPersistManager<KEY extends Serializable, VALUE extends Serializable> extends PersistManagerAbstract<KEY, VALUE> {
+public class InMemoryPersistManager<KEY, VALUE> extends PersistManagerAbstract<KEY, VALUE> {
 
 	private Map<KEY,VALUE> repo;
 	

@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InMemoryByetArrayPersistManager<KEY extends Serializable, VALUE extends Serializable> extends PersistManagerAbstract<KEY, VALUE> {
+public class InMemoryByetArrayPersistManager<KEY, VALUE extends Serializable> extends PersistManagerAbstract<KEY, VALUE> {
 
 	private Map<KEY,byte[]> repo;
 	

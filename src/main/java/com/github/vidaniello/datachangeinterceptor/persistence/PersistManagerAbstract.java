@@ -1,9 +1,8 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.io.Serializable;
 import java.util.Properties;
 
-public abstract class PersistManagerAbstract<KEY extends Serializable, VALUE extends Serializable> implements PersistManager<KEY, VALUE> {
+public abstract class PersistManagerAbstract<KEY, VALUE> implements PersistManager<KEY, VALUE> {
 
 	private String repoName;
 	private Properties properties;
@@ -36,20 +35,20 @@ public abstract class PersistManagerAbstract<KEY extends Serializable, VALUE ext
 		return properties;
 	}
 	
-	public void loadPersistentRepositoryConfig(PersistentRepositoryConfig persistentRepositoryConfig) {
+	public void loadPersistentRepositoryConfig(PersistentRepositoryConfig persistentRepositoryConfig, Object instanceForGeneratingDynamic) throws Exception {
 		if(persistentRepositoryConfig!=null) {
 			this.persistentRepositoryConfig = persistentRepositoryConfig;
 			
-			setProperties(persistentRepositoryConfig.properties());
+			setProperties(persistentRepositoryConfig.properties(), instanceForGeneratingDynamic);
 			setSystemProperties(persistentRepositoryConfig.systemProperties());
 		}
 	}
 	
 	abstract void initRepository();
 	
-	private void setProperties(Property[] properties) {
+	private void setProperties(Property[] properties, Object instanceForGeneratingDynamic) throws Exception {
 		for(Property prop : properties)
-			getProperties().put(prop.key(), prop.value());
+			getProperties().put(prop.key(), PersistenceReferenceFactory.getDynamicKeyByPattern(prop.value(), instanceForGeneratingDynamic));
 	}
 	
 	private void setSystemProperties(SystemProperty[] properties) {

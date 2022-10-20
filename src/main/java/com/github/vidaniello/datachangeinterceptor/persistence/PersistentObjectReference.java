@@ -1,13 +1,8 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.io.IOException;
 import java.io.Serializable;
 
-public interface PersistentObjectReference
-	<
-		KEY extends Serializable, 
-		VALUE extends Serializable
-	> extends Serializable {
+public interface PersistentObjectReference<KEY, VALUE> extends Serializable {
 
 	//public String getRepoName();
 	public PersistentObjectReferenceInfo getPersistentObjectReferenceInfo();

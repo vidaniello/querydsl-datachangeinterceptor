@@ -1,16 +1,23 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+import java.lang.reflect.Type;
+
 class PersistentObjectReferenceInfo {
 	
 	private Class<?> relationClass;
 	private PersistentRepositoryConfig relationClassPersistentRepositoryConfigAnnotation;
 	private Class<?> keyType;
 	private Class<?> valueType;
+	private boolean isValueTypeParametrized;
+	private String typeName;
+	private Type rawType;
 	private PersistentEntity persistentEntityAnnotation;
 	private PersistentRepositoryConfig objectReferencePersistentRepositoryConfigAnnotation;
 	
 	private String calculatedRepoName;
 	//private Class<? extends PersistManagerAbstract<?,?>> calculatedRepositoryImplementationClass;
+	
+	private Object instanceForGenerateDynamicKey;
 	
 	PersistentObjectReferenceInfo() {
 		
@@ -48,6 +55,30 @@ class PersistentObjectReferenceInfo {
 	void setValueType(Class<?> valueType) {
 		this.valueType = valueType;
 	}
+	
+	boolean isValueTypeParametrized() {
+		return isValueTypeParametrized;
+	}
+	
+	void setValueTypeParametrized(boolean isValueTypeParametrized) {
+		this.isValueTypeParametrized = isValueTypeParametrized;
+	}
+	
+	Type getRawType() {
+		return rawType;
+	}
+	
+	void setRawType(Type rawType) {
+		this.rawType = rawType;
+	}
+	
+	String getTypeName() {
+		return typeName;
+	}
+	
+	void setTypeName(String typeName) {
+		this.typeName = typeName;
+	}
 
 	PersistentEntity getPersistentEntityAnnotation() {
 		return persistentEntityAnnotation;
@@ -70,6 +101,14 @@ class PersistentObjectReferenceInfo {
 		this.objectReferencePersistentRepositoryConfigAnnotation = objectReferencePersistentRepositoryConfigAnnotation;
 	}
 	
+	Object getInstanceForGenerateDynamicKey() {
+		return instanceForGenerateDynamicKey;
+	}
+	
+	void setInstanceForGenerateDynamicKey(Object instanceForGenerateDynamicKey) {
+		this.instanceForGenerateDynamicKey = instanceForGenerateDynamicKey;
+	}
+	
 	PersistentRepositoryConfig getLogicPersistentRepositoryConfig() {
 		
 		
@@ -86,20 +125,26 @@ class PersistentObjectReferenceInfo {
 	/**
 	 * Default repoName is the canonical class name of the value type.<br>
 	 * If exsist the persistent repository config, and the value repoName is not
-	 * empty, the repo name will be the value of the annotation repoName field.
+	 * empty, the repo name will be the value of the annotation repoName field.<br>
+	 * See PersistenceReferenceFactory.getDynamicKeyByPattern(...) for the dynamic generation
 	 * @return
+	 * @throws Exception 
 	 */
-	String getCalculatedRepoName() {
+	synchronized String getCalculatedRepoName() throws Exception {
 		
 		if(calculatedRepoName==null) {
 			
-			calculatedRepoName = getValueType().getCanonicalName();
+			if(!isValueTypeParametrized())
+				calculatedRepoName = getValueType().getCanonicalName();
+			else
+				calculatedRepoName = getTypeName();
 			
 			PersistentRepositoryConfig persistentRepositoryConfig = getLogicPersistentRepositoryConfig();
 			
 			if(persistentRepositoryConfig!=null)
-				if(!persistentRepositoryConfig.repoName().isEmpty())
-					calculatedRepoName = persistentRepositoryConfig.repoName();			
+				if(!persistentRepositoryConfig.repoName().isEmpty()) {
+					calculatedRepoName = PersistenceReferenceFactory.getDynamicKeyByPattern(persistentRepositoryConfig.repoName(), getInstanceForGenerateDynamicKey());
+				}
 		}
 		
 		return calculatedRepoName;

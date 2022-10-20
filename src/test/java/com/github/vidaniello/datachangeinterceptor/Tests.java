@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.github.vidaniello.datachangeinterceptor.persistence.PersistRepositoy;
+import com.github.vidaniello.datachangeinterceptor.persistence.PersistRepositoyPool;
 import com.github.vidaniello.datachangeinterceptor.persistence.PersistenceReferenceFactory;
 
 public class Tests {

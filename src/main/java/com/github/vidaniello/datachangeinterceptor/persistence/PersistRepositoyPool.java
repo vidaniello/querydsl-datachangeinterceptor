@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PersistRepositoy {
+public class PersistRepositoyPool {
 	
 	/**
 	 * If change it, change also int the annotation {@link com.github.vidaniello.datachangeinterceptor.persistence.PersistentRepositoryConfig PersistentRepositoryConfig}
@@ -24,8 +24,8 @@ public class PersistRepositoy {
 	public static final Class<? extends PersistManager> defaultRepositoryImplementationClass = InMemoryPersistManager.class;
 	
 	
-	private static PersistRepositoy singleton = new PersistRepositoy();
-	public static PersistRepositoy getInstance() {
+	private static PersistRepositoyPool singleton = new PersistRepositoyPool();
+	public static PersistRepositoyPool getInstance() {
 		return singleton;
 	}
 	
@@ -44,12 +44,12 @@ public class PersistRepositoy {
 	
 	
 	@SuppressWarnings("unchecked")
-	public synchronized <KEY extends Serializable,VALUE extends Serializable> PersistManager<KEY,VALUE> getRepository(String repoName){
+	public synchronized <KEY,VALUE> PersistManager<KEY,VALUE> getRepository(String repoName){
 		return (PersistManager<KEY, VALUE>) getRepositories().get(repoName);
 	}
 	
 	
-	public <KEY extends Serializable,VALUE extends Serializable> PersistManager<KEY,VALUE> getRepository(PersistentObjectReference<KEY, VALUE> objRef) throws Exception{
+	public <KEY,VALUE> PersistManager<KEY,VALUE> getRepository(PersistentObjectReference<KEY, VALUE> objRef) throws Exception{
 		return getRepository(getAndCreateReposotory(objRef));
 	}
 	
@@ -91,7 +91,7 @@ public class PersistRepositoy {
 		
 		PersistManagerAbstract<?,?> newInstance = (PersistManagerAbstract<?, ?>) clazz.getConstructor().newInstance();
 		newInstance.setRepoName(pori.getCalculatedRepoName());
-		newInstance.loadPersistentRepositoryConfig(persistentRepositoryConfig);
+		newInstance.loadPersistentRepositoryConfig(persistentRepositoryConfig, pori.getInstanceForGenerateDynamicKey());
 		newInstance.initRepository();
 		
 		toret = newInstance;
