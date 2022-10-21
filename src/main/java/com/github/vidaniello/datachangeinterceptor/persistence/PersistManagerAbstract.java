@@ -2,7 +2,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.util.Properties;
 
-public abstract class PersistManagerAbstract<KEY, VALUE> implements PersistManager<KEY, VALUE> {
+public abstract class PersistManagerAbstract</*KEY, */VALUE> implements PersistManager</*KEY, */VALUE> {
 
 	private String repoName;
 	private Properties properties;

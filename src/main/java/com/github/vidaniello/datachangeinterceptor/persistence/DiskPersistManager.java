@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import com.github.vidaniello.datachangeinterceptor.Statics;
 
-public class DiskPersistManager<VALUE extends Serializable> extends PersistManagerAbstract<String, VALUE> {
+public class DiskPersistManager<VALUE extends Serializable> extends PersistManagerAbstract</*String,*/ VALUE> {
 
 	public static final String defaultBasePath = System.getProperty("user.home")+File.separator+Statics.appName;
 	public static final String datachangeinterceptor_diskpersistence_basepath_systemProperty = Statics.appName+".diskpersistence.basepath";

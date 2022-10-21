@@ -2,11 +2,11 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.lang.reflect.Type;
 
-class PersistentObjectReferenceInfo {
+class PersistentObjectReferenceInfo implements Cloneable {
 	
 	private Class<?> relationClass;
 	private PersistentRepositoryConfig relationClassPersistentRepositoryConfigAnnotation;
-	private Class<?> keyType;
+	//private Class<?> keyType;
 	private Class<?> valueType;
 	private boolean isValueTypeParametrized;
 	private String typeName;
@@ -15,6 +15,7 @@ class PersistentObjectReferenceInfo {
 	private PersistentRepositoryConfig objectReferencePersistentRepositoryConfigAnnotation;
 	
 	private String calculatedRepoName;
+	private String calculatedKey;
 	//private Class<? extends PersistManagerAbstract<?,?>> calculatedRepositoryImplementationClass;
 	
 	private Object instanceForGenerateDynamicKey;
@@ -39,7 +40,8 @@ class PersistentObjectReferenceInfo {
 			PersistentRepositoryConfig relationClassPersistentRepositoryConfigAnnotation) {
 		this.relationClassPersistentRepositoryConfigAnnotation = relationClassPersistentRepositoryConfigAnnotation;
 	}
-
+	
+	/*
 	Class<?> getKeyType() {
 		return keyType;
 	}
@@ -47,6 +49,7 @@ class PersistentObjectReferenceInfo {
 	void setKeyType(Class<?> keyType) {
 		this.keyType = keyType;
 	}
+ 	*/
 
 	Class<?> getValueType() {
 		return valueType;
@@ -101,6 +104,14 @@ class PersistentObjectReferenceInfo {
 		this.objectReferencePersistentRepositoryConfigAnnotation = objectReferencePersistentRepositoryConfigAnnotation;
 	}
 	
+	String getCalculatedKey() {
+		return calculatedKey;
+	}
+	
+	void setCalculatedKey(String calculatedKey) {
+		this.calculatedKey = calculatedKey;
+	}
+	
 	Object getInstanceForGenerateDynamicKey() {
 		return instanceForGenerateDynamicKey;
 	}
@@ -149,8 +160,27 @@ class PersistentObjectReferenceInfo {
 		
 		return calculatedRepoName;
 	}
+	
+	private void setCalculatedRepoName(String calculatedRepoName) {
+		this.calculatedRepoName = calculatedRepoName;
+	}
 		
 	
-
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		PersistentObjectReferenceInfo ret = new PersistentObjectReferenceInfo();
+		ret.setCalculatedKey(getCalculatedKey());
+		ret.setCalculatedRepoName(calculatedRepoName);
+		ret.setInstanceForGenerateDynamicKey(getInstanceForGenerateDynamicKey());
+		ret.setObjectReferencePersistentRepositoryConfigAnnotation(getObjectReferencePersistentRepositoryConfigAnnotation());
+		ret.setPersistentEntityAnnotation(getPersistentEntityAnnotation());
+		ret.setRawType(getRawType());
+		ret.setRelationClass(getRelationClass());
+		ret.setRelationClassPersistentRepositoryConfigAnnotation(getRelationClassPersistentRepositoryConfigAnnotation());
+		ret.setTypeName(getTypeName());
+		ret.setValueType(getValueType());
+		ret.setValueTypeParametrized(isValueTypeParametrized());
+		return ret;
+	}
 	
 }

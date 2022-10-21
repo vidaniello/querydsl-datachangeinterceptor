@@ -4,10 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -204,7 +206,7 @@ public class TestPersistence {
 
 			
 			
-			PersistManager<String, SimpleContainerObject> pm = PersistRepositoyPool.getInstance().getRepository(SimpleContainerObject.class.getCanonicalName());
+			PersistManager</*String,*/ SimpleContainerObject> pm = PersistRepositoyPool.getInstance().getRepository(SimpleContainerObject.class.getCanonicalName());
 						
 			SimpleContainerObject sco = pm.read("1");
 			if(sco==null) {
@@ -221,6 +223,24 @@ public class TestPersistence {
 			sp = sco.getSimplePojo();
 			sp.setName("Modified pojo child");
 			sco.setSimplePojo(sp);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+	
+	
+	@Test
+	public void testCollections() {
+		try {
+			
+			List<String> c = new ArrayList<>();
+			Set<String> v = new HashSet<String>();
+			
+			SimpleContainerObject sco = new SimpleContainerObject();
+			sco.setId("1");
+			
+			
 			
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

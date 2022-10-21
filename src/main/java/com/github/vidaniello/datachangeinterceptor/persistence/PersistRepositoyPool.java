@@ -1,18 +1,7 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.io.Serializable;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,29 +20,29 @@ public class PersistRepositoyPool {
 	
 	private Logger log = LogManager.getLogger();
 	
-	private Map<String,PersistManager<?,?>> repositories;
-	private Map<String,PersistManager<?,?>> getRepositories(){
+	private Map<String,PersistManager</*?,*/?>> repositories;
+	private Map<String,PersistManager</*?,*/?>> getRepositories(){
 		if(repositories==null)
 			repositories = new HashMap<>();
 		return repositories;
 	}
 	
-	public synchronized void registerRepository(PersistManager<?,?> repository) {
+	public synchronized void registerRepository(PersistManager</*?,*/?> repository) {
 		getRepositories().put(repository.getRepoName(), repository);
 	}
 	
 	
 	@SuppressWarnings("unchecked")
-	public synchronized <KEY,VALUE> PersistManager<KEY,VALUE> getRepository(String repoName){
-		return (PersistManager<KEY, VALUE>) getRepositories().get(repoName);
+	public synchronized </*KEY,*/VALUE> PersistManager</*KEY,*/VALUE> getRepository(String repoName){
+		return (PersistManager</*KEY, */VALUE>) getRepositories().get(repoName);
 	}
 	
 	
-	public <KEY,VALUE> PersistManager<KEY,VALUE> getRepository(PersistentObjectReference<KEY, VALUE> objRef) throws Exception{
+	public </*KEY,*/VALUE> PersistManager</*KEY,*/VALUE> getRepository(PersistentObjectReference</*KEY, */VALUE> objRef) throws Exception{
 		return getRepository(getAndCreateReposotory(objRef));
 	}
 	
-	private String getAndCreateReposotory(PersistentObjectReference<?, ?> objRef) throws Exception {
+	private String getAndCreateReposotory(PersistentObjectReference</*?,*/ ?> objRef) throws Exception {
 		
 		PersistentObjectReferenceInfo pori = objRef.getPersistentObjectReferenceInfo();
 
@@ -68,7 +57,7 @@ public class PersistRepositoyPool {
 			if(!getRepositories().containsKey(repoName)) {
 				
 				//Create repository
-				PersistManager<?,?> pManager = initializeNewRepositoryImplemetation(pori);
+				PersistManager</*?,*/?> pManager = initializeNewRepositoryImplemetation(pori);
 				registerRepository(pManager);
 			}
 		}
@@ -77,9 +66,9 @@ public class PersistRepositoyPool {
 		
 	}
 	
-	private PersistManager<?,?> initializeNewRepositoryImplemetation(PersistentObjectReferenceInfo pori) throws Exception {
+	private PersistManager</*?,*/?> initializeNewRepositoryImplemetation(PersistentObjectReferenceInfo pori) throws Exception {
 		
-		PersistManager<?,?> toret = null;
+		PersistManager</*?,*/?> toret = null;
 		
 		PersistentRepositoryConfig persistentRepositoryConfig = pori.getLogicPersistentRepositoryConfig();
 		
@@ -89,7 +78,7 @@ public class PersistRepositoyPool {
 		if(persistentRepositoryConfig!=null)
 			clazz = persistentRepositoryConfig.repositoryClassImplementation();
 		
-		PersistManagerAbstract<?,?> newInstance = (PersistManagerAbstract<?, ?>) clazz.getConstructor().newInstance();
+		PersistManagerAbstract</*?,*/?> newInstance = (PersistManagerAbstract</*?,*/ ?>) clazz.getConstructor().newInstance();
 		newInstance.setRepoName(pori.getCalculatedRepoName());
 		newInstance.loadPersistentRepositoryConfig(persistentRepositoryConfig, pori.getInstanceForGenerateDynamicKey());
 		newInstance.initRepository();

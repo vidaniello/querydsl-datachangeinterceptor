@@ -9,11 +9,11 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InMemoryByetArrayPersistManager<KEY, VALUE extends Serializable> extends PersistManagerAbstract<KEY, VALUE> {
+public class InMemoryByetArrayPersistManager</*KEY,*/ VALUE extends Serializable> extends PersistManagerAbstract</*KEY,*/ VALUE> {
 
-	private Map<KEY,byte[]> repo;
+	private Map</*KEY*/String,byte[]> repo;
 	
-	private Map<KEY, byte[]> getRepo(){
+	private Map</*KEY*/String, byte[]> getRepo(){
 		if(repo==null)
 			repo = new HashMap<>();
 		return repo;
@@ -31,7 +31,7 @@ public class InMemoryByetArrayPersistManager<KEY, VALUE extends Serializable> ex
 	}
 	
 	@Override
-	public synchronized void write(KEY key, VALUE value) throws IOException {
+	public synchronized void write(/*KEY*/String key, VALUE value) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
 		oos.writeObject(value);
@@ -41,7 +41,7 @@ public class InMemoryByetArrayPersistManager<KEY, VALUE extends Serializable> ex
 	
 	
 	@Override
-	public synchronized VALUE read(KEY key) throws IOException, ClassNotFoundException {
+	public synchronized VALUE read(/*KEY*/String key) throws IOException, ClassNotFoundException {
 		byte[] value = getRepo().get(key);
 		if(value==null)return null;
 		ByteArrayInputStream bais = new ByteArrayInputStream(value);
@@ -53,7 +53,7 @@ public class InMemoryByetArrayPersistManager<KEY, VALUE extends Serializable> ex
 	}
 
 	@Override
-	public synchronized void delete(KEY key) throws IOException {
+	public synchronized void delete(/*KEY*/String key) throws IOException {
 		getRepo().remove(key);
 	}
 	

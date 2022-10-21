@@ -1,11 +1,9 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,15 +18,10 @@ public class PersistenceReferenceFactory {
 	private static Logger log = LogManager.getLogger();
 	
 
-	public static <KEY, VALUE> Collection<PersistentObjectReference<KEY,VALUE>> getCollectionReference(Object dynamicKeyInstance) throws Exception{
-	
-		return null;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static <KEY, VALUE>  PersistentObjectReference<KEY,VALUE> getReference(Object dynamicKeyInstance) throws Exception{
+	public static <ITERABLE extends Iterable<PersistentObjectReference<?>>, VALUE> PersistentCollectionReferenceImpl<ITERABLE, VALUE> getCollectionReference(
+			ITERABLE emptyCollectionInstance, Object dynamicKeyInstance) throws Exception{
 		
-		PersistentObjectReference<KEY, VALUE> ret = null;
+		PersistentCollectionReferenceImpl<ITERABLE, VALUE> ret = null;
 		
 		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
 		
@@ -36,85 +29,44 @@ public class PersistenceReferenceFactory {
 		String methodName = ste[2].getMethodName();
 		
 		try {
-			PersistentObjectReferenceInfo pori = new PersistentObjectReferenceInfo();
 			
-			pori.setInstanceForGenerateDynamicKey(dynamicKeyInstance);
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
 			
-			Class<?> relationClass = Class.forName(callingClass);
+			ret = new PersistentCollectionReferenceImpl<>(emptyCollectionInstance, pori.getCalculatedKey());
+			ret.setPersistentObjectReferenceInfo(pori);
 			
-			pori.setRelationClass(relationClass);
-			pori.setRelationClassPersistentRepositoryConfigAnnotation(relationClass.getAnnotation(PersistentRepositoryConfig.class));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+		
+		
+		return ret;
+	}
+	
+	/*
+	public static <KEY, VALUE> Collection<PersistentObjectReference<KEY,VALUE>> getCollectionReference(Object dynamicKeyInstance) throws Exception{
+	
+		return null;
+	}
+	*/
+	
+	@SuppressWarnings("unchecked")
+	public static </*KEY,*/ VALUE>  PersistentObjectReference</*KEY,*/VALUE> getReference(Object dynamicKeyInstance) throws Exception{
+		
+		PersistentObjectReference</*KEY,*/ VALUE> ret = null;
+		
+		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+		
+		String callingClass = ste[2].getClassName();
+		String methodName = ste[2].getMethodName();
+		
+		try {
+
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
 			
-			Method meth = relationClass.getDeclaredMethod(methodName);
-			meth.setAccessible(true);
-			
-			if(!meth.getReturnType().equals(PersistentObjectReference.class))
-				throw new Exception("The method not return an PersistentObjectReference object!");
-			
-			Type[] genRetTypes = ((ParameterizedType)meth.getGenericReturnType()).getActualTypeArguments();
-			
-			Class<KEY> classKey = null;
-			if(Class.class.isAssignableFrom(genRetTypes[0].getClass()))
-					classKey = (Class<KEY>) genRetTypes[0];
-			
-			Class<VALUE> classValue = null;
-			if(Class.class.isAssignableFrom(genRetTypes[1].getClass()))
-				classValue = (Class<VALUE>) genRetTypes[1];
-			else {
-				ParameterizedType parType = ((ParameterizedType)genRetTypes[1]);
-				
-				pori.setValueTypeParametrized(true);
-				pori.setTypeName(parType.getTypeName());
-				Type rawType = parType.getRawType();
-				pori.setRawType(rawType);
-				
-				classValue = (Class<VALUE>) rawType;
-				/*
-				Type[] getActualTypeArguments = parType.getActualTypeArguments();
-				if(Iterable.class.isAssignableFrom((Class<?>)rawType)){
-					classValue = (Class<VALUE>) getActualTypeArguments[0];
-				} else if(Map.class.isAssignableFrom(rawType.getClass())){
-					
-				}
-				*/
-				
-				int i = 0;
-			}
-			
-			pori.setKeyType(classKey);
-			pori.setValueType(classValue);
-			
-			//String repoName = classValue.getCanonicalName();
-			String key = "";
-			
-			PersistentEntity persistentEntityAnnotation = meth.getAnnotation(PersistentEntity.class);
-			pori.setObjectReferencePersistentRepositoryConfigAnnotation(meth.getAnnotation(PersistentRepositoryConfig.class));
-			
-			if(persistentEntityAnnotation!=null) {
-				
-				pori.setPersistentEntityAnnotation(persistentEntityAnnotation);
-				
-				//Construction of key
-				key = getDynamicKeyByPattern(persistentEntityAnnotation.primaryKey(), dynamicKeyInstance);
-				
-				//if(!persistentEntityAnnotation.repoName().isEmpty()) 
-					//repoName = persistentEntityAnnotation.repoName();
-							
-				/*
-				else {
-				
-					//Static key, default empty String
-					key = persistentEntityAnnotation.staticKey();
-				
-					//Dynamic key
-					if(!persistentEntityAnnotation.dynamicKey_name().isEmpty() && dynamicKeyInstance!=null) 
-						key = getDynamicKey(persistentEntityAnnotation, dynamicKeyInstance) + key;
-				}
-				*/
-			}
-			
-			ret = (PersistentObjectReference<KEY, VALUE>) 
-					new PersistentObjectReferenceImpl<>(/*repoName, */(KEY)key)
+			ret = (PersistentObjectReference</*KEY,*/ VALUE>) 
+					new PersistentObjectReferenceImpl<>(/*repoName, */pori.getCalculatedKey())
 						.setPersistentObjectReferenceInfo(pori);
 			
 		} catch (Exception e) {
@@ -125,6 +77,88 @@ public class PersistenceReferenceFactory {
 	}
 	
 		
+	
+	@SuppressWarnings("unchecked")
+	private static </*KEY,*/ VALUE> PersistentObjectReferenceInfo getPersistentObjectReferenceInfo(Object dynamicKeyInstance, String callingClass, String methodName) throws Exception{
+		PersistentObjectReferenceInfo pori = new PersistentObjectReferenceInfo();
+		
+		pori.setInstanceForGenerateDynamicKey(dynamicKeyInstance);
+		
+		Class<?> relationClass = Class.forName(callingClass);
+		
+		pori.setRelationClass(relationClass);
+		pori.setRelationClassPersistentRepositoryConfigAnnotation(relationClass.getAnnotation(PersistentRepositoryConfig.class));
+		
+		Method meth = relationClass.getDeclaredMethod(methodName);
+		meth.setAccessible(true);
+		
+		if(!meth.getReturnType().equals(PersistentObjectReference.class))
+			throw new Exception("The method not return an PersistentObjectReference object!");
+		
+		Type[] genRetTypes = ((ParameterizedType)meth.getGenericReturnType()).getActualTypeArguments();
+		
+		/*
+		Class<KEY> classKey = null;
+		if(Class.class.isAssignableFrom(genRetTypes[0].getClass()))
+				classKey = (Class<KEY>) genRetTypes[0];
+		*/
+		
+		Class<VALUE> classValue = null;
+		if(Class.class.isAssignableFrom(genRetTypes[/*1*/0].getClass()))
+			classValue = (Class<VALUE>) genRetTypes[/*1*/0];
+		else {
+			ParameterizedType parType = ((ParameterizedType)genRetTypes[/*1*/0]);
+			
+			pori.setValueTypeParametrized(true);
+			pori.setTypeName(parType.getTypeName());
+			Type rawType = parType.getRawType();
+			pori.setRawType(rawType);
+			
+			classValue = (Class<VALUE>) rawType;
+		}
+		
+		//pori.setKeyType(classKey);
+		pori.setValueType(classValue);
+		
+		//String repoName = classValue.getCanonicalName();
+		String key = "";
+		
+		PersistentEntity persistentEntityAnnotation = meth.getAnnotation(PersistentEntity.class);
+		pori.setObjectReferencePersistentRepositoryConfigAnnotation(meth.getAnnotation(PersistentRepositoryConfig.class));
+		
+		if(persistentEntityAnnotation!=null) {
+			
+			pori.setPersistentEntityAnnotation(persistentEntityAnnotation);
+			
+			//Construction of key
+			key = getDynamicKeyByPattern(persistentEntityAnnotation.primaryKey(), dynamicKeyInstance);
+			
+			//if(!persistentEntityAnnotation.repoName().isEmpty()) 
+				//repoName = persistentEntityAnnotation.repoName();
+						
+			/*
+			else {
+			
+				//Static key, default empty String
+				key = persistentEntityAnnotation.staticKey();
+			
+				//Dynamic key
+				if(!persistentEntityAnnotation.dynamicKey_name().isEmpty() && dynamicKeyInstance!=null) 
+					key = getDynamicKey(persistentEntityAnnotation, dynamicKeyInstance) + key;
+			}
+			*/
+		}
+		
+		pori.setCalculatedKey(key);
+		
+		return pori;
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	private static final String dynamicKeyPattern = "\\$\\{([a-zA-Z0-9_\\$\\£çèéù€ì]+?\\(\\))\\}|\\$\\{([a-zA-Z0-9_\\$\\£çèéù€ì]+?)\\}";

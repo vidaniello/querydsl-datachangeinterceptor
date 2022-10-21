@@ -12,11 +12,11 @@ import java.util.Map;
  * @param <KEY>
  * @param <VALUE>
  */
-public class InMemoryPersistManager<KEY, VALUE> extends PersistManagerAbstract<KEY, VALUE> {
+public class InMemoryPersistManager</*KEY, */VALUE> extends PersistManagerAbstract</*KEY,*/ VALUE> {
 
-	private Map<KEY,VALUE> repo;
+	private Map</*KEY*/String,VALUE> repo;
 	
-	private Map<KEY, VALUE> getRepo(){
+	private Map</*KEY*/String, VALUE> getRepo(){
 		if(repo==null)
 			repo = new HashMap<>();
 		return repo;
@@ -36,17 +36,17 @@ public class InMemoryPersistManager<KEY, VALUE> extends PersistManagerAbstract<K
 	*/
 	
 	@Override
-	public synchronized void write(KEY key, VALUE value) throws IOException {
+	public synchronized void write(/*KEY*/String key, VALUE value) throws IOException {
 		getRepo().put(key, value);
 	}
 
 	@Override
-	public synchronized VALUE read(KEY key) throws IOException, ClassNotFoundException {
+	public synchronized VALUE read(/*KEY*/String key) throws IOException, ClassNotFoundException {
 		return getRepo().get(key);
 	}
 
 	@Override
-	public synchronized void delete(KEY key) throws IOException {
+	public synchronized void delete(/*KEY*/String key) throws IOException {
 		getRepo().remove(key);
 	}
 
