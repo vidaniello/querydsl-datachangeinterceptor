@@ -1,7 +1,9 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+import java.io.Serializable;
+import java.util.Objects;
 
-public class SimplePojo implements PersistentObject<Integer> {
+public class SimplePojo/* implements PersistentObject<Integer> */ implements Serializable{
 
 	/**
 	 * 
@@ -21,7 +23,7 @@ public class SimplePojo implements PersistentObject<Integer> {
 		return id;
 	}
 	
-	@Override
+	//@Override
 	public Integer getKey() {
 		return getId();
 	}
@@ -53,6 +55,25 @@ public class SimplePojo implements PersistentObject<Integer> {
 	public void setSurname(String surname) {
 		this.surname = surname;
 	}
+
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SimplePojo other = (SimplePojo) obj;
+		return Objects.equals(id, other.id);
+	}
+	
 	
 	
 }

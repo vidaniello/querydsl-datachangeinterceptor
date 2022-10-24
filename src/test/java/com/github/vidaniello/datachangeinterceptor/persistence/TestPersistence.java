@@ -240,8 +240,22 @@ public class TestPersistence {
 			SimpleContainerObject sco = new SimpleContainerObject();
 			sco.setId("1");
 			
+			//sco.clear_CollOfSP();
 			
+			List<PersistentObjectReference<SimplePojo>> coll = sco.get_CollOfSP();
 			
+			SimplePojo sp = getSimplePojoMock();
+			
+			sco.addToColl(sp);
+			
+			List<SimplePojo> listLoaded = sco.getListLoaded();
+					
+			
+			for(SimplePojo spf : sco.getIterato()) {
+				log.debug(spf);
+			}
+			
+			int i = 0;
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

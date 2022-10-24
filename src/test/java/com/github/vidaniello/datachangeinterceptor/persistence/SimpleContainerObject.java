@@ -1,13 +1,16 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @PersistentRepositoryConfig()
 public class SimpleContainerObject implements Serializable{
@@ -30,7 +33,9 @@ public class SimpleContainerObject implements Serializable{
 			
 	private PersistentObjectReference</*String,*/ Map<String,SimplePojo>> mapOfSimplePojo;
 	
-	private PersistentCollectionReferenceImpl<List<PersistentObjectReference<SimplePojo>>, SimplePojo> collOfSP;
+	//private PersistentCollectionReferenceImpl<List<PersistentObjectReference<SimplePojo>>, SimplePojo> collOfSP;
+	
+	private PersistentObjectReference<List<PersistentObjectReference<SimplePojo>>> _collOfSP;
 	
 	//private PersistentObjectReference<String, Deque<PersistentObjectReference<String, SimplePojo>>> listOfSimplePojo;
 	
@@ -171,7 +176,7 @@ public class SimpleContainerObject implements Serializable{
 	
 	
 	
-	
+	/*
 	@PersistentRepositoryConfig(
 			repoName = "SimpleContainerObject.${id}.collOfSP",
 			repositoryClassImplementation = DiskPersistManager.class,
@@ -181,24 +186,118 @@ public class SimpleContainerObject implements Serializable{
 	@PersistentEntity(primaryKey = "collOfSP")
 	private synchronized PersistentCollectionReferenceImpl<List<PersistentObjectReference<SimplePojo>>, SimplePojo> getCollSPRef() throws Exception{
 		if(collOfSP==null)
-			collOfSP = PersistenceReferenceFactory.getCollectionReference(new ArrayList<>(), this);
+			collOfSP = PersistenceReferenceFactory.getCollectionReference(/*new ArrayList<>(),*//* this);
 		return collOfSP;
 	}
 	
 	
-	private void s() throws Exception {
-		getCollSPRef().getValue();
+	public List<PersistentObjectReference<SimplePojo>> getCollOfSP() throws Exception {
+		if(getCollSPRef().getValue().getValue()==null)
+			getCollSPRef().getValue().setValue(new ArrayList<>());
+		return getCollSPRef().getValue().getValue();
+	}
+	*/
+	
+	
+	
+	@PersistentRepositoryConfig(
+			repoName = "SimpleContainerObject.${id}._collOfSP",
+			repositoryClassImplementation = DiskPersistManager.class,
+			properties = {
+					@Property(key = DiskPersistManager.propertyName_repositoryPath, value = "SimpleContainerObject/${id}/_collOfSP")
+			})
+	@PersistentEntity(primaryKey = "_collOfSP")
+	private synchronized PersistentObjectReference<List<PersistentObjectReference<SimplePojo>>> get_CollSPRef() throws Exception{
+		if(_collOfSP==null)
+			_collOfSP = PersistenceReferenceFactory.getReference(/*new ArrayList<>(),*/ this);
+		return _collOfSP;
 	}
 	
 	
+	public List<PersistentObjectReference<SimplePojo>> get_CollOfSP() throws Exception {
+		if(get_CollSPRef().getValue()==null)
+			get_CollSPRef().setValue(new ArrayList<>());
+		return get_CollSPRef().getValue();
+	}
 	
+	public void clear_CollOfSP() throws Exception {
+		PersistentObjectReferenceInfo orig = get_CollSPRef().getPersistentObjectReferenceInfo();
+		
+		List<PersistentObjectReference<SimplePojo>> coll = get_CollOfSP();
+		for(PersistentObjectReference<SimplePojo> ref : coll) {
+			PersistentObjectReferenceInfo copy = getForCollection(orig,ref.getKey());
+			((PersistentObjectReferenceImpl<SimplePojo>)ref).setPersistentObjectReferenceInfo(copy);
+			ref.setValue(null);
+		}
+		
+		get_CollSPRef().setValue(null);
+	}
 	
+	private PersistentObjectReferenceInfo getForCollection(PersistentObjectReferenceInfo collectionRef, String key) throws CloneNotSupportedException {
+		PersistentObjectReferenceInfo copy = (PersistentObjectReferenceInfo) collectionRef.clone();
+		copy.setCollectionReference(true);
+		copy.setCalculatedKey(key);
+		return copy;
+	}
 	
+	public void addToColl(SimplePojo sp) throws Exception {
+		PersistentObjectReferenceInfo orig = get_CollSPRef().getPersistentObjectReferenceInfo();
+		String key = calculateNewKey(orig.getCalculatedKey(), sp);
+		PersistentObjectReferenceInfo copy = getForCollection(get_CollSPRef().getPersistentObjectReferenceInfo(), key);
+		PersistentObjectReferenceImpl<SimplePojo> por = new PersistentObjectReferenceImpl<>(copy.getCalculatedKey());
+		por.setPersistentObjectReferenceInfo(copy);
+		por.setValue(sp);
+		List<PersistentObjectReference<SimplePojo>> coll = get_CollOfSP();
+		coll.add(por);
+		get_CollSPRef().setValue(coll);
+	}
 	
+	public List<SimplePojo> getListLoaded() throws Exception{
+		PersistentObjectReferenceInfo orig = get_CollSPRef().getPersistentObjectReferenceInfo();
+		List<SimplePojo> ret = new ArrayList<>();
+		List<PersistentObjectReference<SimplePojo>> coll = get_CollOfSP();
+		Map<String, SimplePojo> sameInstanceRef = new HashMap<>();
+		for(PersistentObjectReference<SimplePojo> ref : coll) {
+			PersistentObjectReferenceInfo copy = getForCollection(orig,ref.getKey());
+			((PersistentObjectReferenceImpl<SimplePojo>)ref).setPersistentObjectReferenceInfo(copy);
+			
+			if(isHashCodeImplemented(SimplePojo.class)) {
+				
+				if(!sameInstanceRef.containsKey(ref.getKey())) 
+					sameInstanceRef.put(ref.getKey(), ref.getValue());
+				
+				ret.add(sameInstanceRef.get(ref.getKey()));
+			} else 
+				ret.add(ref.getValue());
+			
+			
+		}
+		return ret;
+	}
 	
+	public Iterable<SimplePojo> getIterato() throws Exception{
+		PersistentObjectIterable<SimplePojo> custI = new PersistentObjectIterable<>(get_CollOfSP());
+		return custI;
+	}
 	
+
+	private String calculateNewKey(String preKey, Object newElement) throws Exception{
+		
+		Method hashMethod = newElement.getClass().getMethod("hashCode");
+		Class<?> declClass = hashMethod.getDeclaringClass();
+		if(declClass.equals(Object.class))
+			return preKey+"_"+newElement.hashCode()+"_"+UUID.randomUUID();
+		else
+			return preKey+"_"+newElement.hashCode();
+		
+	}
 	
-	
+	private boolean isHashCodeImplemented(Class<?> element) throws Exception{
+		
+		Method hashMethod = element.getMethod("hashCode");
+		Class<?> declClass = hashMethod.getDeclaringClass();
+		return !declClass.equals(Object.class);
+	}
 	
 	/*
 	public void setSimplePojoReference(PersistentObjectReference<String, SimplePojo> simplePojo) {

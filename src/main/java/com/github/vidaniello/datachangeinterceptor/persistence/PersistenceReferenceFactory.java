@@ -18,8 +18,8 @@ public class PersistenceReferenceFactory {
 	private static Logger log = LogManager.getLogger();
 	
 
-	public static <ITERABLE extends Iterable<PersistentObjectReference<?>>, VALUE> PersistentCollectionReferenceImpl<ITERABLE, VALUE> getCollectionReference(
-			ITERABLE emptyCollectionInstance, Object dynamicKeyInstance) throws Exception{
+	public static <ITERABLE extends Iterable<PersistentObjectReference<VALUE>>, VALUE> PersistentCollectionReferenceImpl<ITERABLE, VALUE> getCollectionReference(
+			/*ITERABLE emptyCollectionInstance,*/ Object dynamicKeyInstance) throws Exception{
 		
 		PersistentCollectionReferenceImpl<ITERABLE, VALUE> ret = null;
 		
@@ -32,7 +32,7 @@ public class PersistenceReferenceFactory {
 			
 			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
 			
-			ret = new PersistentCollectionReferenceImpl<>(emptyCollectionInstance, pori.getCalculatedKey());
+			ret = new PersistentCollectionReferenceImpl<>(/*emptyCollectionInstance,*/ pori.getCalculatedKey());
 			ret.setPersistentObjectReferenceInfo(pori);
 			
 		} catch (Exception e) {
@@ -92,7 +92,8 @@ public class PersistenceReferenceFactory {
 		Method meth = relationClass.getDeclaredMethod(methodName);
 		meth.setAccessible(true);
 		
-		if(!meth.getReturnType().equals(PersistentObjectReference.class))
+		//if(!meth.getReturnType().equals(PersistentObjectReference.class))
+		if(!PersistentObjectReference.class.isAssignableFrom(meth.getReturnType()))
 			throw new Exception("The method not return an PersistentObjectReference object!");
 		
 		Type[] genRetTypes = ((ParameterizedType)meth.getGenericReturnType()).getActualTypeArguments();

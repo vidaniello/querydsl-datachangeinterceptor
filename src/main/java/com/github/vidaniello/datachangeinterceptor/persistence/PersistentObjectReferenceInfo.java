@@ -20,6 +20,8 @@ class PersistentObjectReferenceInfo implements Cloneable {
 	
 	private Object instanceForGenerateDynamicKey;
 	
+	private boolean collectionReference;
+	
 	PersistentObjectReferenceInfo() {
 		
 	}
@@ -118,6 +120,14 @@ class PersistentObjectReferenceInfo implements Cloneable {
 	
 	void setInstanceForGenerateDynamicKey(Object instanceForGenerateDynamicKey) {
 		this.instanceForGenerateDynamicKey = instanceForGenerateDynamicKey;
+	}
+	
+	boolean isCollectionReference() {
+		return collectionReference;
+	}
+	
+	void setCollectionReference(boolean collectionReference) {
+		this.collectionReference = collectionReference;
 	}
 	
 	PersistentRepositoryConfig getLogicPersistentRepositoryConfig() {

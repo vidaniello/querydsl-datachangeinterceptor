@@ -1,7 +1,5 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
-import java.util.Iterator;
-
 public class PersistentCollectionReferenceImpl<ITERABLE extends Iterable<PersistentObjectReference<VALUE>>, VALUE> 
 	extends PersistentObjectReferenceImpl</*String,*/ PersistentObjectReference<ITERABLE>> {
 
@@ -12,7 +10,7 @@ public class PersistentCollectionReferenceImpl<ITERABLE extends Iterable<Persist
 	
 	//private PersistentObjectReference</*String,*/ Iterable<PersistentObjectReference</*String,*/ VALUE>>> collRef;
 	
-	public PersistentCollectionReferenceImpl(ITERABLE emptyCollectionInstance, String key) {
+	public PersistentCollectionReferenceImpl(/*ITERABLE emptyCollectionInstance, */String key) {
 		super(key);
 	}
 	
@@ -36,6 +34,13 @@ public class PersistentCollectionReferenceImpl<ITERABLE extends Iterable<Persist
 		return collRef;
 	}
 	*/
-
+	
+	@Override
+	public PersistentObjectReference<ITERABLE> getValue() throws Exception {
+		PersistentObjectReference<ITERABLE> ret = super.getValue();
+		//if(ret==null)
+			//super.setValue(this);
+		return ret;
+	}
 	
 }
