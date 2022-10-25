@@ -1,5 +1,7 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+import java.util.Objects;
+
 public class PersistentObjectReferenceImpl</*KEY,*/ VALUE> implements PersistentObjectReference</*KEY,*/ VALUE> {
 
 	/**
@@ -66,5 +68,24 @@ public class PersistentObjectReferenceImpl</*KEY,*/ VALUE> implements Persistent
 		else
 			getRepository().delete(getKey());
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(key);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PersistentObjectReferenceImpl<?> other = (PersistentObjectReferenceImpl<?>) obj;
+		return Objects.equals(key, other.key);
+	}
+	
+	
 
 }

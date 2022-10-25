@@ -236,7 +236,7 @@ public class TestPersistence {
 			
 			List<String> c = new ArrayList<>();
 			Set<String> v = new HashSet<String>();
-			
+						
 			SimpleContainerObject sco = new SimpleContainerObject();
 			sco.setId("1");
 			
@@ -244,16 +244,43 @@ public class TestPersistence {
 			
 			List<PersistentObjectReference<SimplePojo>> coll = sco.get_CollOfSP();
 			
-			SimplePojo sp = getSimplePojoMock();
+			SimplePojo sp1 = getSimplePojoMock();
+			sp1.setId(1);
+			sco.addToColl(sp1);
 			
-			sco.addToColl(sp);
+			SimplePojo sp2 = getSimplePojoMock();
+			sp2.setId(2);
+			sco.addToColl(sp2);
 			
-			List<SimplePojo> listLoaded = sco.getListLoaded();
+			SimplePojo sp3 = getSimplePojoMock();
+			sp3.setId(3);
+			sco.addToColl(sp3);
+			
+			SimplePojo sp4 = getSimplePojoMock();
+			sp4.setId(4);
+			sco.addToColl(sp4);
+			
+			SimplePojo sp5 = getSimplePojoMock();
+			sp5.setId(5);
+			sco.addToColl(sp5);
+			
+			sco.removeFromCollection(sp4);
+			
+			//sco.addToColl(sp);
+			
+			//List<SimplePojo> listLoaded = sco.getListLoaded();
 					
-			
+			/*
 			for(SimplePojo spf : sco.getIterato()) {
-				log.debug(spf);
+				log.debug(spf.getName());
 			}
+			*/
+			
+			/*
+			sco.getParallelStream().forEach(simplePojo->{
+				log.debug(simplePojo.getName());
+			});
+			*/
 			
 			int i = 0;
 		} catch (Exception e) {
