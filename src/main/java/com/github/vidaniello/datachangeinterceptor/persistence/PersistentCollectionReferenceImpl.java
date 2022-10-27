@@ -1,5 +1,6 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+@Deprecated
 public class PersistentCollectionReferenceImpl<ITERABLE extends Iterable<PersistentObjectReference<VALUE>>, VALUE> 
 	extends PersistentObjectReferenceImpl</*String,*/ PersistentObjectReference<ITERABLE>> {
 

@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,6 +19,7 @@ public class PersistenceReferenceFactory {
 	private static Logger log = LogManager.getLogger();
 	
 
+	@Deprecated
 	public static <ITERABLE extends Iterable<PersistentObjectReference<VALUE>>, VALUE> PersistentCollectionReferenceImpl<ITERABLE, VALUE> getCollectionReference(
 			/*ITERABLE emptyCollectionInstance,*/ Object dynamicKeyInstance) throws Exception{
 		
@@ -51,7 +53,34 @@ public class PersistenceReferenceFactory {
 	}
 	*/
 	
-	@SuppressWarnings("unchecked")
+	public static <VALUE>  PersistentCollection<VALUE> getCollectionReference(Object dynamicKeyInstance, Collection<VALUE> initialInstanceImplementation) throws Exception{
+		
+		PersistentCollection<VALUE> ret = null;
+		
+		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+		
+		String callingClass = ste[2].getClassName();
+		String methodName = ste[2].getMethodName();
+		
+		try {
+
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
+			
+			PersistentObjectReference<Collection<PersistentObjectReference<VALUE>>> wrappedReference =	
+					new PersistentObjectReferenceImpl<Collection<PersistentObjectReference<VALUE>>>(pori.getCalculatedKey())
+				.setPersistentObjectReferenceInfo(pori);
+			
+			
+			ret = new PersistentCollectionImpl<VALUE>(wrappedReference, initialInstanceImplementation);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+		return ret;
+	}
+	
+	
 	public static </*KEY,*/ VALUE>  PersistentObjectReference</*KEY,*/VALUE> getReference(Object dynamicKeyInstance) throws Exception{
 		
 		PersistentObjectReference</*KEY,*/ VALUE> ret = null;
@@ -65,8 +94,7 @@ public class PersistenceReferenceFactory {
 
 			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
 			
-			ret = (PersistentObjectReference</*KEY,*/ VALUE>) 
-					new PersistentObjectReferenceImpl<>(/*repoName, */pori.getCalculatedKey())
+			ret = new PersistentObjectReferenceImpl<VALUE>(/*repoName, */pori.getCalculatedKey())
 						.setPersistentObjectReferenceInfo(pori);
 			
 		} catch (Exception e) {
@@ -93,8 +121,10 @@ public class PersistenceReferenceFactory {
 		meth.setAccessible(true);
 		
 		//if(!meth.getReturnType().equals(PersistentObjectReference.class))
-		if(!PersistentObjectReference.class.isAssignableFrom(meth.getReturnType()))
-			throw new Exception("The method not return an PersistentObjectReference object!");
+		if(!PersistentObjectReference.class.isAssignableFrom(meth.getReturnType()) &&
+		   !PersistentCollection.class.isAssignableFrom(meth.getReturnType())
+		)
+			throw new Exception("The method not return a valid PersistenceReference object!");
 		
 		Type[] genRetTypes = ((ParameterizedType)meth.getGenericReturnType()).getActualTypeArguments();
 		

@@ -43,6 +43,8 @@ public class SimpleContainerObject implements Serializable{
 	
 	//private PersistentObjectReference<String, Deque<PersistentObjectReference<String, SimplePojo>>> listOfSimplePojo;
 	
+	private PersistentCollection<SimplePojo> collectionOfSimplePojos;
+	
 	public String getId() {
 		return id;
 	}
@@ -377,7 +379,18 @@ public class SimpleContainerObject implements Serializable{
 	
 	
 	
-	
+	@PersistentRepositoryConfig(
+			repoName = "SimpleContainerObject.${id}.collectionOfSimplePojos",
+			repositoryClassImplementation = DiskPersistManager.class,
+			properties = {
+					@Property(key = DiskPersistManager.propertyName_repositoryPath, value = "SimpleContainerObject/${id}/collectionOfSimplePojos")
+			})
+	@PersistentEntity(primaryKey = "collectionOfSimplePojos")
+	public synchronized PersistentCollection<SimplePojo> getCollectionOfSimplePojosRef() throws Exception{
+		if(collectionOfSimplePojos==null)
+			collectionOfSimplePojos = PersistenceReferenceFactory.getCollectionReference(this, new ArrayList<>());
+		return collectionOfSimplePojos;
+	}
 	
 	
 	

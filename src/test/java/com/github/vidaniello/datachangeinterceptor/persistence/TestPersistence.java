@@ -2,6 +2,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -236,7 +237,10 @@ public class TestPersistence {
 			
 			List<String> c = new ArrayList<>();
 			Set<String> v = new HashSet<String>();
-						
+			Queue<String> cc;
+			Deque<String> dc;
+			
+			
 			SimpleContainerObject sco = new SimpleContainerObject();
 			sco.setId("1");
 			
@@ -281,6 +285,55 @@ public class TestPersistence {
 				log.debug(simplePojo.getName());
 			});
 			*/
+			
+			int i = 0;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+	
+	
+	@Test
+	public void testNewCollection() {
+		try {
+									
+			SimpleContainerObject sco = new SimpleContainerObject();
+			sco.setId("1");
+						
+			SimplePojo sp1 = getSimplePojoMock();
+			sp1.setId(1);
+			
+			SimplePojo sp2 = getSimplePojoMock();
+			sp2.setId(2);
+			
+			SimplePojo sp3 = getSimplePojoMock();
+			sp3.setId(3);
+			
+			SimplePojo sp4 = getSimplePojoMock();
+			sp4.setId(4);
+			
+			SimplePojo sp5 = getSimplePojoMock();
+			sp5.setId(5);
+			
+			PersistentCollection<SimplePojo> perstColl = sco.getCollectionOfSimplePojosRef();
+			
+			Collection<PersistentObjectReference<SimplePojo>> loadedColl =  perstColl.getPersistentObjectReferences();
+			
+			List<PersistentObjectReference<SimplePojo>> c = perstColl.getCollectionReferencesImplementation();
+			
+			/*
+			perstColl.add(sp1);
+			perstColl.add(sp2);
+			perstColl.add(sp3);
+			perstColl.add(sp4);
+			perstColl.add(sp5);
+			
+			loadedColl =  perstColl.getPersistentObjectReferences();
+			*/
+			
+			perstColl.parallelStream().forEach(sp->{
+				log.debug(sp);
+			});
 			
 			int i = 0;
 		} catch (Exception e) {
