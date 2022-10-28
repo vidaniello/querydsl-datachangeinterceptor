@@ -331,9 +331,13 @@ public class TestPersistence {
 			loadedColl =  perstColl.getPersistentObjectReferences();
 			*/
 			
+			/*
 			perstColl.parallelStream().forEach(sp->{
 				log.debug(sp);
 			});
+			*/
+			
+			perstColl.remove(sp5);
 			
 			int i = 0;
 		} catch (Exception e) {

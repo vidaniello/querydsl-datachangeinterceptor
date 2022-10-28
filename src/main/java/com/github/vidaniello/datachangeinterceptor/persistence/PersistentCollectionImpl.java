@@ -3,21 +3,18 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.UUID;
-import java.util.stream.Stream;
-
 import javax.management.RuntimeErrorException;
 
 public class PersistentCollectionImpl<E> implements PersistentCollection<E> {
 
-	
 	private PersistentObjectReference<Collection<PersistentObjectReference<E>>> wrappedReference;
 	private Collection<?> initialInstanceImplementation;
+	
+	private Boolean hashCodeImplemented;
 	
 	private PersistentCollectionImpl() {
 		
@@ -40,6 +37,13 @@ public class PersistentCollectionImpl<E> implements PersistentCollection<E> {
 	
 	private Collection<?> getInitialInstanceImplementation() {
 		return initialInstanceImplementation;
+	}
+	
+	
+	boolean isHashCodeImplemented() throws Exception {
+		if(hashCodeImplemented==null)
+			hashCodeImplemented = isHashCodeImplemented(getClassOfElements());
+		return hashCodeImplemented;
 	}
 	
 	@Override
@@ -120,59 +124,129 @@ public class PersistentCollectionImpl<E> implements PersistentCollection<E> {
 	}
 	
 	
-
 	@Override
-	public boolean contains(Object o) {
+	public synchronized boolean contains(Object o) {
 		try {
 			
 			if(PersistentObjectReference.class.isAssignableFrom(o.getClass())) 
 				return getPersistentObjectReferences().contains(o);
 			else {
 				
+				if(!isHashCodeImplemented(o.getClass())) 
+					throw new Exception("Impossible to check contains of an object with no identifiable id! override at least 'hashCode' methdod");
+				
+					
+				if(!getClassOfElements().equals(o.getClass()))
+					return false;
+				else
+					return getPersistentObjectReferences().contains(findFirstReference(castElement(o)));
+					
+				
+					
 			}
 			
-			return false;
+			//return false;
 		} catch (Exception ex) {
 			throw newRuntimeException(ex);
 		}
 	}
 
+	
 	@Override
-	public boolean remove(Object o) {
+	public synchronized boolean remove(Object o) {
 		try {
 			
 			if(PersistentObjectReference.class.isAssignableFrom(o.getClass())) { 
 				
-				Collection<PersistentObjectReference<E>> coll = getPersistentObjectReferences();
+				@SuppressWarnings("unchecked")
+				PersistentObjectReference<E> ref = PersistentObjectReference.class.cast(o);
+
+				return remove(ref);
 				
-				if(coll.contains(o)) {
-					
-					@SuppressWarnings("unchecked")
-					PersistentObjectReference<E> ref = PersistentObjectReference.class.cast(o);
-					
-					while(coll.contains(o))
-						coll.remove(o);
-					
-					ref.setValue(null);
-					
-					getWrappedReference().setValue(coll);
-					
-					return true;
-				}
-				return false;
 			} else {
+								
+				if(!isHashCodeImplemented(o.getClass())) 
+					throw new Exception("Impossible to remove an object with no identifiable id! override at least 'hashCode' methdod");
+									
+				if(!getClassOfElements().equals(o.getClass()))
+						throw new Exception("The object to remove has not the same class of the collection objects");
+				
+				if(!getClassOfElements().equals(o.getClass()))
+					return false;
+				else
+					return remove(findFirstReference(castElement(o)));
 				
 			}
 			
-			
-			return false;
+			//return false;
 		} catch (Exception ex) {
 			throw newRuntimeException(ex);
 		}
 	}
 	
+	/**
+	 * Remove the reference if it is contained in the collection.<br>
+	 * If the reference is the last, it is also removed from the repository of the collection.
+	 * @param ref
+	 * @return
+	 * @throws Exception
+	 */
+	private boolean remove(PersistentObjectReference<E> ref) throws Exception {
+		
+		Collection<PersistentObjectReference<E>> coll = getPersistentObjectReferences();
+		
+		if(coll.contains(ref)) {
+			
+			/*
+			while(coll.contains(o))
+				coll.remove(o);
+			*/
+			
+			coll.remove(ref);
+			
+			getWrappedReference().setValue(coll);
+			
+			if(!coll.contains(ref))
+				ref.setValue(null);
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Find first reference starting from object
+	 * @param o
+	 * @return
+	 * @throws Exception
+	 */
+	private PersistentObjectReference<E> findFirstReference(E o) throws Exception {
+		
+		boolean[] finded = new boolean[] {false};
+		
+		//parallelStream().filter(predicate)
+		
+		return null;
+	}
+	
+	/**
+	 * Find all references starting from object
+	 * @param o
+	 * @return
+	 * @throws Exception
+	 */
+	private Collection<PersistentObjectReference<E>> findAllReference(E o) throws Exception {
+				
+		//parallelStream().filter(predicate)
+		
+		return null;
+	}
+	
+	
+	
 	@Override
-	public void clear() {
+	public synchronized void clear() {
 		try {
 			
 		} catch (Exception ex) {
@@ -230,31 +304,62 @@ public class PersistentCollectionImpl<E> implements PersistentCollection<E> {
 	
 
 	
-	private void throNotImplemented() {
-		throw new RuntimeErrorException(new Error("Not implemented"));
-	}
+	
+	
+	
+
 
 	PersistentObjectReferenceInfo getOriginalPersistentObjectReferenceInfo() {
 		return getWrappedReference().getPersistentObjectReferenceInfo();
 	}
 	
-	private String calculateNewKey(String preKey, E newElement) throws Exception{
+	Class<?> getClassOfElements() {
+		return getOriginalPersistentObjectReferenceInfo().getValueType();
+	}
+	
+	@SuppressWarnings("unchecked")
+	E castElement(Object e) {
+		return (E) getClassOfElements().cast(e);
+	}
+	
+	private String getKey(E o) throws Exception{
+		return getKey(getOriginalPersistentObjectReferenceInfo().getCalculatedKey(), o);
+	}
+	
+	private String getKey(String preKey, E newElement) throws Exception{
 		
-		Method hashMethod = newElement.getClass().getMethod("hashCode");
-		Class<?> declClass = hashMethod.getDeclaringClass();
-		if(declClass.equals(Object.class))
+		if(!isHashCodeImplemented())
 			return preKey+"_"+newElement.hashCode()+"_"+UUID.randomUUID();
 		else
 			return preKey+"_"+newElement.hashCode();
 	}
 	
 	private PersistentObjectReference<E> getNewReference(E e) throws Exception{
-		String key = calculateNewKey(getOriginalPersistentObjectReferenceInfo().getCalculatedKey(), e);
+		String key = getKey(e);
 		PersistentObjectReferenceInfo copy = getForPersistedObjectReferenceInCollection(getOriginalPersistentObjectReferenceInfo(), key);
 		PersistentObjectReferenceImpl<E> por = new PersistentObjectReferenceImpl<>(copy.getCalculatedKey());
 		por.setPersistentObjectReferenceInfo(copy);
 		return por;
 	}
+	
+	/*
+	public PersistentObjectReference<E> loadPersistenceInfo(E o) throws CloneNotSupportedException{
+		
+		
+	}
+	*/
+	
+	public PersistentObjectReference<E> loadPersistenceInfo(PersistentObjectReference<E> ref) throws CloneNotSupportedException{
+		if(ref.getPersistentObjectReferenceInfo()==null) 
+			((PersistentObjectReferenceImpl<E>)ref).setPersistentObjectReferenceInfo(
+					getForPersistedObjectReferenceInCollection(
+							getOriginalPersistentObjectReferenceInfo(),
+							ref.getKey()
+					)
+			);
+		return ref;
+	}
+	
 	
 	
 	
@@ -270,6 +375,10 @@ public class PersistentCollectionImpl<E> implements PersistentCollection<E> {
 		Method hashMethod = element.getMethod("hashCode");
 		Class<?> declClass = hashMethod.getDeclaringClass();
 		return !declClass.equals(Object.class);
+	}
+	
+	static void throNotImplemented() {
+		throw new RuntimeErrorException(new Error("Not implemented"));
 	}
 	
 	static RuntimeErrorException newRuntimeException(Exception e) {
