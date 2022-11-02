@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class PersistentCollectionIteratorImpl<E> implements PersistentCollectionIterator<E> {
 
-	private PersistentCollectionImpl<E> collection;
+	private PersistentCollection<E> collection;
 	private Iterable<PersistentObjectReference<E>> preLoadedCollection;
 	private PersistentObjectReferenceInfo collectionPersistentObjectReferenceInfo;
 	
@@ -14,7 +14,7 @@ public class PersistentCollectionIteratorImpl<E> implements PersistentCollection
 		
 	} 
 	
-	PersistentCollectionIteratorImpl(PersistentCollectionImpl<E> collection) {
+	PersistentCollectionIteratorImpl(PersistentCollection<E> collection) {
 		this.collection = collection;
 	} 
 	
@@ -23,7 +23,7 @@ public class PersistentCollectionIteratorImpl<E> implements PersistentCollection
 		this.collectionPersistentObjectReferenceInfo = collectionPersistentObjectReferenceInfo;
 	} 
 	
-	private PersistentCollectionImpl<E> getCollection() {
+	private PersistentCollection<E> getCollection() {
 		return collection;
 	}
 	

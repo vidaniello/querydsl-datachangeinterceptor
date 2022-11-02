@@ -321,23 +321,45 @@ public class TestPersistence {
 			
 			List<PersistentObjectReference<SimplePojo>> c = perstColl.getCollectionReferencesImplementation();
 			
-			/*
+			
 			perstColl.add(sp1);
 			perstColl.add(sp2);
 			perstColl.add(sp3);
 			perstColl.add(sp4);
 			perstColl.add(sp5);
 			
-			loadedColl =  perstColl.getPersistentObjectReferences();
-			*/
+			perstColl.add(sp1);
+			perstColl.add(sp2);
+			perstColl.add(sp3);
+			perstColl.add(sp4);
+			perstColl.add(sp5);
 			
-			/*
+			perstColl.add(sp1);
+			perstColl.add(sp2);
+			perstColl.add(sp3);
+			perstColl.add(sp4);
+			perstColl.add(sp5);
+			
+			perstColl.add(sp1);
+			perstColl.add(sp2);
+			perstColl.add(sp3);
+			perstColl.add(sp4);
+			perstColl.add(sp5);
+			
+			//loadedColl =  perstColl.getPersistentObjectReferences();
+			
+			
 			perstColl.parallelStream().forEach(sp->{
 				log.debug(sp);
 			});
-			*/
+			
 			
 			perstColl.remove(sp5);
+			perstColl.remove(sp5);
+			perstColl.remove(sp5);
+			perstColl.remove(sp5);
+			
+			perstColl.clear();
 			
 			int i = 0;
 		} catch (Exception e) {

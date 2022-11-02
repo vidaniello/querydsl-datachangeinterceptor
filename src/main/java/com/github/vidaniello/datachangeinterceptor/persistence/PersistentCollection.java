@@ -8,4 +8,5 @@ public interface PersistentCollection<E> extends Collection<E> {
 	
 	public <T extends Collection<PersistentObjectReference<E>>> T getCollectionReferencesImplementation() throws Exception;
 
+	public PersistentObjectReferenceInfo getOriginalPersistentObjectReferenceInfo();
 }
