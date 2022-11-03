@@ -1,25 +1,36 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public class PersistentListImpl<E> extends PersistentCollectionImpl<E> implements PersistentList<E> {
+public class PersistentListImpl<E> extends PersistentCollectionAbstractImpl<E, List<PersistentObjectReference<E>>> implements PersistentList<E> {
 
-	public PersistentListImpl(PersistentObjectReference<Collection<PersistentObjectReference<E>>> wrappedReference,
-			Collection<E> initialInstanceImplementation) {
+		
+	public PersistentListImpl(
+			PersistentObjectReference<List<PersistentObjectReference<E>>> wrappedReference, 
+			List<PersistentObjectReference<E>> initialInstanceImplementation) {
 		super(wrappedReference, initialInstanceImplementation);
-		// TODO Auto-generated constructor stub
 	}
-
-
-	
-	
-
+		
 	@Override
 	public E get(int index) {
 		try {
-			return getList().get(index).getValue();
+			return loadPersistenceInfo(getCollection().get(index)).getValue();
+		} catch (Exception e) {
+			throw newRuntimeException(e);
+		}
+	}
+	
+	@Override
+	public synchronized void add(int index, E element) {
+		try {
+			List<PersistentObjectReference<E>> list = getCollection();
+			PersistentObjectReference<E> toAdd = getPersistentObjectReference(element);
+			toAdd.setValue(element);
+			list.add(index, toAdd);
+			getWrappedReference().setValue(list);
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
@@ -28,24 +39,17 @@ public class PersistentListImpl<E> extends PersistentCollectionImpl<E> implement
 	@Override
 	public synchronized E set(int index, E element) {
 		try {
-			List<PersistentObjectReference<E>> list = getList();
-			PersistentObjectReference<E> oldEl = getList().set(index, getPersistentObjectReference(element));			
+			List<PersistentObjectReference<E>> list = getCollection();
+			PersistentObjectReference<E> toAdd = getPersistentObjectReference(element);
+			toAdd.setValue(element);
+			PersistentObjectReference<E> oldEl = loadPersistenceInfo(list.set(index, toAdd));
+			E toret = oldEl.getValue();
 			getWrappedReference().setValue(list);
 			
-			//check if is last element of list
+			if(!list.contains(oldEl))
+				oldEl.setValue(null);
 			
-			return oldEl.getValue();
-		} catch (Exception e) {
-			throw newRuntimeException(e);
-		}
-	}
-
-	@Override
-	public synchronized void add(int index, E element) {
-		try {
-			List<PersistentObjectReference<E>> list = getList();
-			getList().add(index, getPersistentObjectReference(element));
-			getWrappedReference().setValue(list);
+			return toret;
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
@@ -54,13 +58,15 @@ public class PersistentListImpl<E> extends PersistentCollectionImpl<E> implement
 	@Override
 	public synchronized E remove(int index) {
 		try {
-			List<PersistentObjectReference<E>> list = getList();
-			PersistentObjectReference<E> removedElement = getList().remove(index);
+			List<PersistentObjectReference<E>> list = getCollection();
+			PersistentObjectReference<E> removedElement = loadPersistenceInfo(list.remove(index));
+			E toret = removedElement.getValue();
 			getWrappedReference().setValue(list);
 			
-			//check if is last element of list
+			if(!list.contains(removedElement))
+				removedElement.setValue(null);
 			
-			return removedElement.getValue();
+			return toret;
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
@@ -74,9 +80,7 @@ public class PersistentListImpl<E> extends PersistentCollectionImpl<E> implement
 			if(ref==null)
 				return -1;
 			
-			for(int i= 0)
-			
-			return 0;
+			return getCollection().indexOf(ref);
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
@@ -84,34 +88,36 @@ public class PersistentListImpl<E> extends PersistentCollectionImpl<E> implement
 
 	@Override
 	public int lastIndexOf(Object o) {
-		// TODO Auto-generated method stub
-		return 0;
+		try {
+			PersistentObjectReference<E> ref = convert(o);
+		
+			if(ref==null)
+				return -1;
+			
+			return getCollection().lastIndexOf(ref);
+		} catch (Exception e) {
+			throw newRuntimeException(e);
+		}
 	}
 	
-	
-
 	@Override
 	public ListIterator<E> listIterator() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	
+	
+	
+	
+	
+	
 	@Override
 	public ListIterator<E> listIterator(int index) {
-		// TODO Auto-generated method stub
+		throNotImplemented();
 		return null;
 	}
 
-	
-
-	private List<PersistentObjectReference<E>> getList() throws Exception{
-		return (List<PersistentObjectReference<E>>) getPersistentObjectReferences();
-	}
-	
-	
-	
-	
-	
 	@Override
 	public boolean addAll(int index, Collection<? extends E> c) {
 		throNotImplemented();
@@ -123,5 +129,5 @@ public class PersistentListImpl<E> extends PersistentCollectionImpl<E> implement
 		throNotImplemented();
 		return null;
 	}
-	
+
 }

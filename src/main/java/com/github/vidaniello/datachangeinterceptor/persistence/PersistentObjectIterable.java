@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import javax.management.RuntimeErrorException;
 
+@Deprecated
 public class PersistentObjectIterable<E> implements Iterable<E>, Iterator<E> {
 
 	private PersistentObjectReference<? extends Iterable<PersistentObjectReference<E>>> referenceOfCollection;

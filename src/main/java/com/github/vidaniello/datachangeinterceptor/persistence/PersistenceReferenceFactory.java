@@ -7,6 +7,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,7 +54,34 @@ public class PersistenceReferenceFactory {
 	}
 	*/
 	
-	public static <VALUE>  PersistentCollection<VALUE> getCollectionReference(Object dynamicKeyInstance, Collection<VALUE> initialInstanceImplementation) throws Exception{
+	public static <VALUE>  PersistentList<VALUE> getListReference(Object dynamicKeyInstance, List<PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
+		
+		PersistentList<VALUE> ret = null;
+		
+		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+		
+		String callingClass = ste[2].getClassName();
+		String methodName = ste[2].getMethodName();
+		
+		try {
+
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
+			
+			PersistentObjectReference<List<PersistentObjectReference<VALUE>>> wrappedReference =	
+					new PersistentObjectReferenceImpl<List<PersistentObjectReference<VALUE>>>(pori.getCalculatedKey())
+				.setPersistentObjectReferenceInfo(pori);
+			
+			
+			ret = new PersistentListImpl<VALUE>(wrappedReference, initialInstanceImplementation);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+		return ret;
+	}
+	
+	public static <VALUE>  PersistentCollection<VALUE> getCollectionReference(Object dynamicKeyInstance, Collection<PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
 		
 		PersistentCollection<VALUE> ret = null;
 		
@@ -122,7 +150,7 @@ public class PersistenceReferenceFactory {
 		
 		//if(!meth.getReturnType().equals(PersistentObjectReference.class))
 		if(!PersistentObjectReference.class.isAssignableFrom(meth.getReturnType()) &&
-		   !PersistentCollection.class.isAssignableFrom(meth.getReturnType())
+		   !PersistentIterable.class.isAssignableFrom(meth.getReturnType())
 		)
 			throw new Exception("The method not return a valid PersistenceReference object!");
 		

@@ -39,11 +39,13 @@ public class SimpleContainerObject implements Serializable{
 	
 	//private PersistentCollectionReferenceImpl<List<PersistentObjectReference<SimplePojo>>, SimplePojo> collOfSP;
 	
-	private PersistentObjectReference<List<PersistentObjectReference<SimplePojo>>> _collOfSP;
+	//private PersistentObjectReference<List<PersistentObjectReference<SimplePojo>>> _collOfSP;
 	
 	//private PersistentObjectReference<String, Deque<PersistentObjectReference<String, SimplePojo>>> listOfSimplePojo;
 	
 	private PersistentCollection<SimplePojo> collectionOfSimplePojos;
+	
+	private PersistentList<SimplePojo> listOfSimplePojos;
 	
 	public String getId() {
 		return id;
@@ -205,7 +207,7 @@ public class SimpleContainerObject implements Serializable{
 	*/
 	
 	
-	
+	/*
 	@PersistentRepositoryConfig(
 			repoName = "SimpleContainerObject.${id}._collOfSP",
 			repositoryClassImplementation = DiskPersistManager.class,
@@ -215,7 +217,7 @@ public class SimpleContainerObject implements Serializable{
 	@PersistentEntity(primaryKey = "_collOfSP")
 	private synchronized PersistentObjectReference<List<PersistentObjectReference<SimplePojo>>> get_CollSPRef() throws Exception{
 		if(_collOfSP==null)
-			_collOfSP = PersistenceReferenceFactory.getReference(/*new ArrayList<>(),*/ this);
+			_collOfSP = PersistenceReferenceFactory.getReference(/*new ArrayList<>(),*/ /*this);
 		return _collOfSP;
 	}
 	
@@ -362,7 +364,7 @@ public class SimpleContainerObject implements Serializable{
 		Class<?> declClass = hashMethod.getDeclaringClass();
 		return !declClass.equals(Object.class);
 	}
-
+	*/
 	
 	
 	
@@ -393,6 +395,19 @@ public class SimpleContainerObject implements Serializable{
 	}
 	
 	
+	
+	@PersistentRepositoryConfig(
+			repoName = "SimpleContainerObject.${id}.listOfSimplePojos",
+			repositoryClassImplementation = DiskPersistManager.class,
+			properties = {
+					@Property(key = DiskPersistManager.propertyName_repositoryPath, value = "SimpleContainerObject/${id}/listOfSimplePojos")
+			})
+	@PersistentEntity(primaryKey = "listOfSimplePojos")
+	public synchronized PersistentList<SimplePojo> getListOfSimplePojos() throws Exception{
+		if(listOfSimplePojos==null)
+			listOfSimplePojos = PersistenceReferenceFactory.getListReference(this, new ArrayList<>());
+		return listOfSimplePojos;
+	}
 	
 	
 	

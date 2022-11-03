@@ -1,6 +1,8 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 class PersistentObjectReferenceInfo implements Cloneable {
 	
@@ -192,5 +194,70 @@ class PersistentObjectReferenceInfo implements Cloneable {
 		ret.setValueTypeParametrized(isValueTypeParametrized());
 		return ret;
 	}
+	
+	boolean isHashCodeImplemented() throws Exception {
+		return isHashCodeImplemented(getValueType());
+	}
+	
+	
+	PersistentObjectReferenceInfo getForPersistedObjectReferenceInCollection(String key) throws CloneNotSupportedException {
+		return getForPersistedObjectReferenceInCollection(this, key);
+	}
+	
+	
+	
+	
+	<E> String getKey(E o) throws Exception{
+		return getKey(getCalculatedKey(), o);
+	}
+	
+	<E> String getKey(String preKey, E e) throws Exception{
+		
+		if(!isHashCodeImplemented())
+			return preKey+"_"+e.hashCode()+"_"+UUID.randomUUID();
+		else
+			return preKey+"_"+e.hashCode();
+	}
+	
+	<E> PersistentObjectReference<E> getPersistentObjectReference(E e) throws Exception{
+		String key = getKey(e);
+		PersistentObjectReferenceInfo copy = getForPersistedObjectReferenceInCollection(this, key);
+		PersistentObjectReferenceImpl<E> por = new PersistentObjectReferenceImpl<>(copy.getCalculatedKey());
+		por.setPersistentObjectReferenceInfo(copy);
+		return por;
+	}
+	
+	public <E> PersistentObjectReference<E> loadPersistenceInfo(PersistentObjectReference<E> ref) throws CloneNotSupportedException{
+		if(ref.getPersistentObjectReferenceInfo()==null) 
+			((PersistentObjectReferenceImpl<E>)ref).setPersistentObjectReferenceInfo(
+					getForPersistedObjectReferenceInCollection(
+							this,
+							ref.getKey()
+					)
+			);
+		return ref;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	static boolean isHashCodeImplemented(Class<?> element) throws Exception{
+		Method hashMethod = element.getMethod("hashCode");
+		Class<?> declClass = hashMethod.getDeclaringClass();
+		return !declClass.equals(Object.class);
+	}
+	
+	static PersistentObjectReferenceInfo getForPersistedObjectReferenceInCollection(PersistentObjectReferenceInfo collectionRef, String key) throws CloneNotSupportedException {
+		PersistentObjectReferenceInfo copy = (PersistentObjectReferenceInfo) collectionRef.clone();
+		copy.setCollectionReference(true);
+		copy.setCalculatedKey(key);
+		return copy;
+	}
+	
 	
 }

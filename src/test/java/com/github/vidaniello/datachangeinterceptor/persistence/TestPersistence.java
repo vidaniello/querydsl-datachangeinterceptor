@@ -230,15 +230,15 @@ public class TestPersistence {
 		}
 	}
 	
-	
+	/*
 	@Test
 	public void testCollections() {
 		try {
 			
 			List<String> c = new ArrayList<>();
-			Set<String> v = new HashSet<String>();
-			Queue<String> cc;
-			Deque<String> dc;
+			Set<String> v = new HashSet<>();
+			Queue<String> cc = new LinkedList<>();
+			Deque<String> dc = new LinkedList<>();
 			
 			
 			SimpleContainerObject sco = new SimpleContainerObject();
@@ -284,14 +284,14 @@ public class TestPersistence {
 			sco.getParallelStream().forEach(simplePojo->{
 				log.debug(simplePojo.getName());
 			});
-			*/
+			*//*
 			
 			int i = 0;
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
-	
+	*/
 	
 	@Test
 	public void testNewCollection() {
@@ -317,9 +317,9 @@ public class TestPersistence {
 			
 			PersistentCollection<SimplePojo> perstColl = sco.getCollectionOfSimplePojosRef();
 			
-			Collection<PersistentObjectReference<SimplePojo>> loadedColl =  perstColl.getPersistentObjectReferences();
+			Collection<PersistentObjectReference<SimplePojo>> loadedColl =  perstColl.getCollection();
 			
-			List<PersistentObjectReference<SimplePojo>> c = perstColl.getCollectionReferencesImplementation();
+			//Collection<PersistentObjectReference<SimplePojo>> c = perstColl.getCollectionReferencesImplementation();
 			
 			
 			perstColl.add(sp1);
@@ -360,6 +360,113 @@ public class TestPersistence {
 			perstColl.remove(sp5);
 			
 			perstColl.clear();
+			
+			int i = 0;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+	
+	
+	@Test
+	public void testNewList() {
+		try {
+									
+			SimpleContainerObject sco = new SimpleContainerObject();
+			sco.setId("1");
+						
+			SimplePojo sp1 = getSimplePojoMock();
+			sp1.setId(14);
+			
+			SimplePojo sp2 = getSimplePojoMock();
+			sp2.setId(266);
+			
+			SimplePojo sp3 = getSimplePojoMock();
+			sp3.setId(34);
+			
+			SimplePojo sp4 = getSimplePojoMock();
+			sp4.setId(43434);
+			
+			SimplePojo sp5 = getSimplePojoMock();
+			sp5.setId(546);
+			
+			PersistentList<SimplePojo> list = sco.getListOfSimplePojos();
+			
+			List<PersistentObjectReference<SimplePojo>> loadedList =  list.getCollection();		
+			
+			list.add(sp1);
+			list.add(sp2);
+			list.add(sp3);
+			list.add(sp4);
+			list.add(sp5);
+			
+			list.add(sp1);
+			list.add(sp2);
+			list.add(sp3);
+			list.add(sp4);
+			list.add(sp5);
+			
+			list.add(sp1);
+			list.add(sp2);
+			list.add(sp3);
+			list.add(sp4);
+			list.add(sp5);
+			
+			list.add(sp1);
+			list.add(sp2);
+			list.add(sp3);
+			list.add(sp4);
+			list.add(sp5);
+			
+			//loadedColl =  perstColl.getPersistentObjectReferences();
+			
+			
+			list.parallelStream().forEach(sp->{
+				log.debug(sp);
+			});
+			
+			
+			list.remove(sp5);
+			list.remove(sp5);
+			list.remove(sp5);
+			list.remove(sp5);
+			
+			
+			list.clear();
+			
+			
+			list.add(sp1);
+			list.add(sp2);
+			list.add(sp3);
+			list.add(sp4);
+			list.add(sp5);
+			
+			SimplePojo spPos2 = list.get(1);
+			
+			sp3 = getSimplePojoMock();
+			sp3.setId(34741);
+			
+			SimplePojo substituted = list.set(1, sp3);
+			
+			sp3 = getSimplePojoMock();
+			sp3.setId(3333);
+			
+			list.add(sp3);
+			
+			int indexOfsp3 = list.indexOf(sp3);
+			
+			list.add(sp3);
+			list.add(sp3);
+			
+			indexOfsp3 = list.indexOf(sp3);
+			
+			int lastIndexOfsp3 = list.lastIndexOf(sp3);
+			
+			SimplePojo removed = list.remove(lastIndexOfsp3--);
+			removed = list.remove(lastIndexOfsp3--);
+			removed = list.remove(lastIndexOfsp3--);
+			
+			list.clear();
 			
 			int i = 0;
 		} catch (Exception e) {

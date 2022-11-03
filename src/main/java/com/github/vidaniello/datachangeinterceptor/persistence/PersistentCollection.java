@@ -2,11 +2,6 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.util.Collection;
 
-public interface PersistentCollection<E> extends Collection<E> {
+public interface PersistentCollection<E> extends Collection<E>, PersistentIterable<E, Collection<PersistentObjectReference<E>>> {
 	
-	public Collection<PersistentObjectReference<E>> getPersistentObjectReferences() throws Exception;
-	
-	public <T extends Collection<PersistentObjectReference<E>>> T getCollectionReferencesImplementation() throws Exception;
-
-	public PersistentObjectReferenceInfo getOriginalPersistentObjectReferenceInfo();
 }
