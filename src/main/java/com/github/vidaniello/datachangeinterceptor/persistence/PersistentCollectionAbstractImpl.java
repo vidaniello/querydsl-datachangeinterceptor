@@ -66,7 +66,7 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 	public Spliterator<E> spliterator() {
 		try {
 			T collection = getCollection();
-			return Spliterators.spliterator(new PersistentIteratorImpl<E, T>(collection, getOriginalPersistentObjectReferenceInfo()), collection.size(), 0);
+			return Spliterators.spliterator(new PersistentIteratorImpl<E, T, Iterator<PersistentObjectReference<E>>>(collection, getOriginalPersistentObjectReferenceInfo()), collection.size(), 0);
 		} catch (Exception ex) {
 			throw newRuntimeException(ex);
 		}
