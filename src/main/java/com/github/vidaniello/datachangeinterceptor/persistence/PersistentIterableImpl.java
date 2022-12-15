@@ -176,7 +176,7 @@ public abstract class PersistentIterableImpl<E, T extends Collection<PersistentO
 
 
 	
-	static void throNotImplemented() {
+	static void throwNotImplemented() {
 		throw new RuntimeErrorException(new Error("Not implemented"));
 	}
 	

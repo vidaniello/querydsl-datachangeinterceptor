@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,6 +54,33 @@ public class PersistenceReferenceFactory {
 		return null;
 	}
 	*/
+	
+	public static <VALUE>  PersistentSet<VALUE> getSetReference(Object dynamicKeyInstance, Set<PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
+		
+		PersistentSet<VALUE> ret = null;
+		
+		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+		
+		String callingClass = ste[2].getClassName();
+		String methodName = ste[2].getMethodName();
+		
+		try {
+
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
+			
+			PersistentObjectReference<Set<PersistentObjectReference<VALUE>>> wrappedReference =	
+					new PersistentObjectReferenceImpl<Set<PersistentObjectReference<VALUE>>>(pori.getCalculatedKey())
+				.setPersistentObjectReferenceInfo(pori);
+			
+			
+			ret = new PersistentSetImpl<VALUE>(wrappedReference, initialInstanceImplementation);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+		return ret;
+	}
 	
 	public static <VALUE>  PersistentList<VALUE> getListReference(Object dynamicKeyInstance, List<PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
 		

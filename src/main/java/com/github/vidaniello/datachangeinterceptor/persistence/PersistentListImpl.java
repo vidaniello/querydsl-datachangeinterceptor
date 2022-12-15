@@ -114,19 +114,19 @@ public class PersistentListImpl<E> extends PersistentCollectionAbstractImpl<E, L
 	
 	@Override
 	public ListIterator<E> listIterator(int index) {
-		throNotImplemented();
+		throwNotImplemented();
 		return null;
 	}
 
 	@Override
 	public boolean addAll(int index, Collection<? extends E> c) {
-		throNotImplemented();
+		throwNotImplemented();
 		return false;
 	}
 
 	@Override
 	public List<E> subList(int fromIndex, int toIndex) {
-		throNotImplemented();
+		throwNotImplemented();
 		return null;
 	}
 

@@ -169,6 +169,8 @@ public class TestPersistence {
 				log.debug(key+": "+sp);
 			}
 			
+			Set<String> sett = new HashSet<>();
+			
 			int i = 0;
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

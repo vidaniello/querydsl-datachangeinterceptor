@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +47,8 @@ public class SimpleContainerObject implements Serializable{
 	private PersistentCollection<SimplePojo> collectionOfSimplePojos;
 	
 	private PersistentList<SimplePojo> listOfSimplePojos;
+	
+	private PersistentSet<SimplePojo> setOfSimplePojos;
 	
 	public String getId() {
 		return id;
@@ -408,6 +411,22 @@ public class SimpleContainerObject implements Serializable{
 			listOfSimplePojos = PersistenceReferenceFactory.getListReference(this, new ArrayList<>());
 		return listOfSimplePojos;
 	}
+	
+	
+	
+	@PersistentRepositoryConfig(
+			repoName = "SimpleContainerObject.${id}.setOfSimplePojos",
+			repositoryClassImplementation = DiskPersistManager.class,
+			properties = {
+					@Property(key = DiskPersistManager.propertyName_repositoryPath, value = "SimpleContainerObject/${id}/setOfSimplePojos")
+			})
+	@PersistentEntity(primaryKey = "setOfSimplePojos")
+	public synchronized PersistentSet<SimplePojo> getSetOfSimplePojos() throws Exception{
+		if(setOfSimplePojos==null)
+			setOfSimplePojos = PersistenceReferenceFactory.getSetReference(this, new HashSet<>());
+		return setOfSimplePojos;
+	}
+	
 	
 	
 	
