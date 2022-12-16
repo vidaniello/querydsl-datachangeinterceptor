@@ -470,6 +470,95 @@ public class TestPersistence {
 			
 			list.clear();
 			
+			
+			
+			
+			
+			
+			
+			
+			int i = 0;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+	
+	
+	
+	
+	@Test
+	public void testNewSet() {
+		try {
+									
+			SimpleContainerObject sco = new SimpleContainerObject();
+			sco.setId("1");
+						
+			SimplePojo sp1 = getSimplePojoMock();
+			sp1.setId(14);
+			
+			SimplePojo sp2 = getSimplePojoMock();
+			sp2.setId(266);
+			
+			SimplePojo sp3 = getSimplePojoMock();
+			sp3.setId(34);
+			
+			SimplePojo sp4 = getSimplePojoMock();
+			sp4.setId(43434);
+			
+			SimplePojo sp5 = getSimplePojoMock();
+			sp5.setId(546);
+			
+			PersistentSet<SimplePojo> set = sco.getSetOfSimplePojos();
+			
+			Set<PersistentObjectReference<SimplePojo>> loadedSet =  set.getCollection();		
+			
+			set.add(sp1);
+			set.add(sp2);
+			set.add(sp3);
+			set.add(sp4);
+			set.add(sp5);
+			
+			set.add(sp1);
+			set.add(sp2);
+			set.add(sp3);
+			set.add(sp4);
+			set.add(sp5);
+			
+			set.add(sp1);
+			set.add(sp2);
+			set.add(sp3);
+			set.add(sp4);
+			set.add(sp5);
+			
+			set.add(sp1);
+			set.add(sp2);
+			set.add(sp3);
+			set.add(sp4);
+			set.add(sp5);
+			
+			//loadedColl =  perstColl.getPersistentObjectReferences();
+			
+			
+			set.parallelStream().forEach(sp->{
+				log.debug(sp);
+			});
+			
+			
+			set.remove(sp5);
+			set.remove(sp5);
+			set.remove(sp5);
+			set.remove(sp5);
+			
+			set.clear();
+			
+			set.add(sp1);
+			set.add(sp2);
+			set.add(sp3);
+			set.add(sp4);
+			set.add(sp5);
+			
+			set.clear();
+			
 			int i = 0;
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
