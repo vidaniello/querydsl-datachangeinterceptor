@@ -55,6 +55,36 @@ public class PersistenceReferenceFactory {
 	}
 	*/
 	
+	public static <KEY, VALUE>  PersistentMap<KEY, VALUE> getMapReference(Object dynamicKeyInstance, Map<KEY,PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
+		/*
+		PersistentSet<VALUE> ret = null;
+		
+		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+		
+		String callingClass = ste[2].getClassName();
+		String methodName = ste[2].getMethodName();
+		
+		try {
+
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
+			
+			PersistentObjectReference<Set<PersistentObjectReference<VALUE>>> wrappedReference =	
+					new PersistentObjectReferenceImpl<Set<PersistentObjectReference<VALUE>>>(pori.getCalculatedKey())
+				.setPersistentObjectReferenceInfo(pori);
+			
+			
+			ret = new PersistentSetImpl<VALUE>(wrappedReference, initialInstanceImplementation);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+		*/
+		
+		return null;
+	}
+	
+	
 	public static <VALUE>  PersistentSet<VALUE> getSetReference(Object dynamicKeyInstance, Set<PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
 		
 		PersistentSet<VALUE> ret = null;

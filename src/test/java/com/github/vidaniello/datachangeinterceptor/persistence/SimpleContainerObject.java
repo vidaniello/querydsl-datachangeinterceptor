@@ -50,6 +50,8 @@ public class SimpleContainerObject implements Serializable{
 	
 	private PersistentSet<SimplePojo> setOfSimplePojos;
 	
+	private PersistentMap<Integer, SimplePojo> mapOfSimplePojos;
+	
 	public String getId() {
 		return id;
 	}
@@ -429,7 +431,18 @@ public class SimpleContainerObject implements Serializable{
 	
 	
 	
-	
+	@PersistentRepositoryConfig(
+			repoName = "SimpleContainerObject.${id}.mapOfSimplePojos",
+			repositoryClassImplementation = DiskPersistManager.class,
+			properties = {
+					@Property(key = DiskPersistManager.propertyName_repositoryPath, value = "SimpleContainerObject/${id}/mapOfSimplePojos")
+			})
+	@PersistentEntity(primaryKey = "mapOfSimplePojos")
+	public synchronized PersistentMap<Integer, SimplePojo> getMapOfSimplePojos() throws Exception{
+		if(mapOfSimplePojos==null)
+			mapOfSimplePojos = PersistenceReferenceFactory.getMapReference(this, new HashMap<>());
+		return mapOfSimplePojos;
+	}
 	
 	
 	
