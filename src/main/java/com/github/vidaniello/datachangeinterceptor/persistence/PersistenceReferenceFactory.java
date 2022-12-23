@@ -21,43 +21,21 @@ public class PersistenceReferenceFactory {
 	private static Logger log = LogManager.getLogger();
 	
 
-	@Deprecated
-	public static <ITERABLE extends Iterable<PersistentObjectReference<VALUE>>, VALUE> PersistentCollectionReferenceImpl<ITERABLE, VALUE> getCollectionReference(
-			/*ITERABLE emptyCollectionInstance,*/ Object dynamicKeyInstance) throws Exception{
-		
-		PersistentCollectionReferenceImpl<ITERABLE, VALUE> ret = null;
-		
-		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
-		
-		String callingClass = ste[2].getClassName();
-		String methodName = ste[2].getMethodName();
-		
-		try {
-			
-			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
-			
-			ret = new PersistentCollectionReferenceImpl<>(/*emptyCollectionInstance,*/ pori.getCalculatedKey());
-			ret.setPersistentObjectReferenceInfo(pori);
-			
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			throw e;
-		}
-		
-		
-		return ret;
-	}
+
 	
-	/*
-	public static <KEY, VALUE> Collection<PersistentObjectReference<KEY,VALUE>> getCollectionReference(Object dynamicKeyInstance) throws Exception{
 	
-		return null;
-	}
-	*/
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public static <KEY, VALUE>  PersistentMap<KEY, VALUE> getMapReference(Object dynamicKeyInstance, Map<KEY,PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
-		/*
-		PersistentSet<VALUE> ret = null;
+		
+		PersistentMap<KEY, VALUE> ret = null;
 		
 		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
 		
@@ -68,21 +46,52 @@ public class PersistenceReferenceFactory {
 
 			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
 			
-			PersistentObjectReference<Set<PersistentObjectReference<VALUE>>> wrappedReference =	
-					new PersistentObjectReferenceImpl<Set<PersistentObjectReference<VALUE>>>(pori.getCalculatedKey())
+			PersistentObjectReference<Map<KEY,PersistentObjectReference<VALUE>>> wrappedReference =	
+					new PersistentObjectReferenceImpl<Map<KEY,PersistentObjectReference<VALUE>>>(pori.getCalculatedKey())
 				.setPersistentObjectReferenceInfo(pori);
 			
 			
-			ret = new PersistentSetImpl<VALUE>(wrappedReference, initialInstanceImplementation);
+			ret = new PersistentMapImpl<KEY,VALUE>(wrappedReference, initialInstanceImplementation);
 			
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			throw e;
 		}
-		*/
 		
-		return null;
+		
+		return ret;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//QUEUE e DEQUEUE
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public static <VALUE>  PersistentSet<VALUE> getSetReference(Object dynamicKeyInstance, Set<PersistentObjectReference<VALUE>> initialInstanceImplementation) throws Exception{
@@ -167,6 +176,32 @@ public class PersistenceReferenceFactory {
 	}
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static </*KEY,*/ VALUE>  PersistentObjectReference</*KEY,*/VALUE> getReference(Object dynamicKeyInstance) throws Exception{
 		
 		PersistentObjectReference</*KEY,*/ VALUE> ret = null;
@@ -208,7 +243,8 @@ public class PersistenceReferenceFactory {
 		
 		//if(!meth.getReturnType().equals(PersistentObjectReference.class))
 		if(!PersistentObjectReference.class.isAssignableFrom(meth.getReturnType()) &&
-		   !PersistentIterable.class.isAssignableFrom(meth.getReturnType())
+		   !PersistentIterable.class.isAssignableFrom(meth.getReturnType()) &&
+		   !PersistentMap.class.isAssignableFrom(meth.getReturnType())
 		)
 			throw new Exception("The method not return a valid PersistenceReference object!");
 		
@@ -221,9 +257,12 @@ public class PersistenceReferenceFactory {
 		*/
 		
 		Class<VALUE> classValue = null;
-		if(Class.class.isAssignableFrom(genRetTypes[/*1*/0].getClass()))
-			classValue = (Class<VALUE>) genRetTypes[/*1*/0];
-		else {
+		if(Class.class.isAssignableFrom(genRetTypes[/*1*/0].getClass())) {
+			if(!PersistentMap.class.isAssignableFrom(meth.getReturnType()))
+				classValue = (Class<VALUE>) genRetTypes[/*1*/0];
+			else
+				classValue = (Class<VALUE>) genRetTypes[1];
+		} else {
 			ParameterizedType parType = ((ParameterizedType)genRetTypes[/*1*/0]);
 			
 			pori.setValueTypeParametrized(true);
@@ -364,4 +403,73 @@ public class PersistenceReferenceFactory {
 				
 		return method.invoke(dynamicKeyInstance).toString();
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@Deprecated
+	public static <ITERABLE extends Iterable<PersistentObjectReference<VALUE>>, VALUE> PersistentCollectionReferenceImpl<ITERABLE, VALUE> getCollectionReference(
+			/*ITERABLE emptyCollectionInstance,*/ Object dynamicKeyInstance) throws Exception{
+		
+		PersistentCollectionReferenceImpl<ITERABLE, VALUE> ret = null;
+		
+		StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+		
+		String callingClass = ste[2].getClassName();
+		String methodName = ste[2].getMethodName();
+		
+		try {
+			
+			PersistentObjectReferenceInfo pori = getPersistentObjectReferenceInfo(dynamicKeyInstance, callingClass, methodName);
+			
+			ret = new PersistentCollectionReferenceImpl<>(/*emptyCollectionInstance,*/ pori.getCalculatedKey());
+			ret.setPersistentObjectReferenceInfo(pori);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+		
+		
+		return ret;
+	}
+	
+	/*
+	public static <KEY, VALUE> Collection<PersistentObjectReference<KEY,VALUE>> getCollectionReference(Object dynamicKeyInstance) throws Exception{
+	
+		return null;
+	}
+	*/
 }

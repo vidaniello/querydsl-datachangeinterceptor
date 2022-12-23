@@ -20,7 +20,7 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 	
 	
 	@Override
-	public int size() {
+	public synchronized int size() {
 		try {
 			return getCollection().size();
 		} catch (Exception e) {
@@ -29,7 +29,7 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 	}
 
 	@Override
-	public boolean isEmpty() {
+	public synchronized boolean isEmpty() {
 		try {
 			return getCollection().isEmpty();
 		} catch (Exception e) {
@@ -63,7 +63,7 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 	
 	
 	@Override
-	public Spliterator<E> spliterator() {
+	public synchronized Spliterator<E> spliterator() {
 		try {
 			T collection = getCollection();
 			return Spliterators.spliterator(new PersistentIteratorImpl<E, T, Iterator<PersistentObjectReference<E>>>(collection, getOriginalPersistentObjectReferenceInfo()), collection.size(), 0);
@@ -128,6 +128,9 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 		}
 
 	}
+	
+	
+	
 	
 	
 	@Override

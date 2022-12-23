@@ -564,4 +564,39 @@ public class TestPersistence {
 			log.error(e.getMessage(), e);
 		}
 	}
+	
+	@Test
+	public void testNewMap() {
+		try {
+									
+			SimpleContainerObject sco = new SimpleContainerObject();
+			sco.setId("1");
+						
+			SimplePojo sp1 = getSimplePojoMock();
+			sp1.setId(14);
+			
+			SimplePojo sp2 = getSimplePojoMock();
+			sp2.setId(266);
+			
+			SimplePojo sp3 = getSimplePojoMock();
+			sp3.setId(34);
+			
+			SimplePojo sp4 = getSimplePojoMock();
+			sp4.setId(43434);
+			
+			SimplePojo sp5 = getSimplePojoMock();
+			sp5.setId(546);
+			
+			
+			PersistentMap<Integer, SimplePojo> map = sco.getMapOfSimplePojos();
+			
+			SimplePojo ret = map.put(45, sp1);
+			
+			ret = map.put(45, sp2);
+			
+			int i = 0;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
 }
