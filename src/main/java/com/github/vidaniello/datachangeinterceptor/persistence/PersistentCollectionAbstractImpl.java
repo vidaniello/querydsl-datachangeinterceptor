@@ -132,19 +132,6 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 	
 	
 	
-	
-	@Override
-	public Object[] toArray() {
-		throwNotImplemented();
-		return null;
-	}
-
-	@Override
-	public <K> K[] toArray(K[] a) {
-		throwNotImplemented();
-		return null;
-	}
-
 	@Override
 	public boolean containsAll(Collection<?> c) {
 		throwNotImplemented();
@@ -168,4 +155,20 @@ public abstract class PersistentCollectionAbstractImpl<E, T extends Collection<P
 		throwNotImplemented();
 		return false;
 	}
+	
+	
+	
+	@Override
+	public Object[] toArray() {
+		throwNotImplemented();
+		return null;
+	}
+
+	@Override
+	public <K> K[] toArray(K[] a) {
+		throwNotImplemented();
+		return null;
+	}
+
+
 }

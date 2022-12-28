@@ -1,10 +1,13 @@
 package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.management.RuntimeErrorException;
 
@@ -45,9 +48,11 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 		return getWrappedReference().getPersistentObjectReferenceInfo();
 	}
 	
+	
 	Class<?> getClassOfElements() {
 		return getOriginalPersistentObjectReferenceInfo().getValueType();
 	}
+	
 	
 	public PersistentObjectReference<Map<KEY, PersistentObjectReference<VALUE>>> getWrappedReference() {
 		return wrappedReference;
@@ -152,36 +157,60 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 		}
 	}
 	
+	private VALUE removeOrPut(boolean put, KEY key, Map<KEY,PersistentObjectReference<VALUE>> map, PersistentObjectReference<VALUE> newToAdd) throws Exception {
+		
+		PersistentObjectReference<VALUE> toretref = null;
+		VALUE toret = null;
+		if(put)
+			toretref = map.put(key, newToAdd);
+		else
+			toretref = map.remove(key);
+		
+		if(toretref!=null) {
+			toret = loadPersistenceInfo(toretref).getValue();
+			toretref.setValue(null);
+		}
+
+		return toret;
+	}
+	
 	@Override
 	public synchronized VALUE put(KEY key, VALUE value) {
 		try {
-			
-			Exception toThrow = null;
-			
+						
 			PersistentObjectReference<VALUE> newToAdd = getPersistentObjectReference(value);
 			
 			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
 			
-			PersistentObjectReference<VALUE> toretref = map.put(key, newToAdd);
-			VALUE toret = null;
-			
-			if(toretref!=null)
-				try {
-					toret = toretref.getValue();
-					toretref.setValue(null);
-				} catch (Exception e) {
-					toThrow = e;
-				}
-						
+			VALUE toret = removeOrPut(true,key,map,newToAdd);
+				
 			getWrappedReference().setValue(map);
 			newToAdd.setValue(value);
-			
-			if(toThrow!=null)
-				throw toThrow;
-			
+						
 			return toret;
 		} catch (Exception ex) {
 			throw newRuntimeException(ex);
+		}
+	}
+	
+	@Override
+	public synchronized VALUE remove(Object key) {
+		try {
+			
+			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
+			if(map.containsKey(key)) {
+				
+				@SuppressWarnings("unchecked")
+				VALUE toret = removeOrPut(false,(KEY) key,map,null);		
+				
+				getWrappedReference().setValue(map);
+				
+				return toret;
+			}
+			
+			return null;
+		} catch (Exception e) {
+			throw newRuntimeException(e);
 		}
 	}
 	
@@ -211,55 +240,26 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 	@Override
 	public synchronized VALUE get(Object key) {
 		try {			
-			return getMap().get(key).getValue();
+			return loadPersistenceInfo(getMap().get(key)).getValue();
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
 	}
 
 
-
-	@Override
-	public synchronized VALUE remove(Object key) {
-		try {
-			
-			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
-			if(map.containsKey(key)) {
-				
-				Exception toThrow = null;
-				
-				PersistentObjectReference<VALUE> toretref = map.get(key);
-				VALUE toret = toretref.getValue();
-				
-				try {
-					toretref.setValue(null);
-				} catch (Exception e) {
-					toThrow = e;
-				}
-				
-				getWrappedReference().setValue(map);
-				
-				if(toThrow!=null)
-					throw toThrow;
-				
-				return toret;
-			}
-			
-			return null;
-		} catch (Exception e) {
-			throw newRuntimeException(e);
-		}
-	}
 
 	@Override
 	public synchronized void clear() {
 		try {			
+			
+			Exception[] toThrow = new Exception[]{null};
+			
 			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
 			map.values().parallelStream().forEach(val->{
 				try {
 					loadPersistenceInfo(val).setValue(null);
 				} catch (Exception exc) {
-					
+					toThrow[0]=exc;
 				}
 			});
 			
@@ -267,32 +267,95 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 			
 			getWrappedReference().setValue(map);
 			
+			if(toThrow[0]!=null)
+				throw toThrow[0];
+			
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
 	}
 	
 	@Override
-	public void putAll(Map<? extends KEY, ? extends VALUE> m) {
-		// TODO Auto-generated method stub
-		
+	public synchronized void putAll(Map<? extends KEY, ? extends VALUE> m) {
+		try {
+			
+			Exception[] toThrow = new Exception[]{null};
+			
+			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
+			
+			m.forEach((key,val)->{
+				try {
+					PersistentObjectReference<VALUE> newToAdd = getPersistentObjectReference(val);
+					removeOrPut(true,key,map,newToAdd);
+					newToAdd.setValue(val);
+				} catch (Exception exc) {
+					toThrow[0]=exc;
+				}
+			});
+			
+			getWrappedReference().setValue(map);
+			
+			if(toThrow[0]!=null)
+				throw toThrow[0];
+			
+		} catch (Exception e) {
+			throw newRuntimeException(e);
+		}
 	}
 
 	@Override
-	public Set<KEY> keySet() {
-		// TODO Auto-generated method stub
-		return null;
+	public synchronized Set<KEY> keySet() {
+		try {
+			return getMap().keySet();
+		} catch (Exception e) {
+			throw newRuntimeException(e);
+		}
 	}
 
+	public synchronized Collection<PersistentObjectReference<VALUE>> valuesReferences() throws Exception{
+		return getMap().values();
+	}
+	
 	@Override
-	public Collection<VALUE> values() {
-		// TODO Auto-generated method stub
-		return null;
+	public synchronized Collection<VALUE> values() {
+		try {
+			Exception[] toThrow = new Exception[]{null};
+			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
+			Collection<PersistentObjectReference<VALUE>> refColl = map.values();
+			
+			Stream<VALUE> stream = refColl.parallelStream().map((m)->{
+				try {
+					return loadPersistenceInfo(m).getValue();
+				} catch (Exception exc) {
+					toThrow[0]=exc;
+					return null;
+				}
+			});
+			
+			if(toThrow[0]!=null)
+				throw toThrow[0];
+			
+			return stream.collect(Collectors.toList());
+		} catch (Exception e) {
+			throw newRuntimeException(e);
+		}
 	}
 
+	
+	
+	
+	
+	
+	public Iterator<VALUE> valuesIterator() {
+		return new PersistentIteratorImpl<VALUE, Collection<PersistentObjectReference<VALUE>>, Iterator<PersistentObjectReference<VALUE>>>(this);
+	}
+	
+	
+	
+	
 	@Override
 	public Set<Entry<KEY, VALUE>> entrySet() {
-		// TODO Auto-generated method stub
+		throwNotImplemented();
 		return null;
 	}
 

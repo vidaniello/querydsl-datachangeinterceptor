@@ -7,7 +7,7 @@ public class PersistentListIteratorImpl<E> extends PersistentIteratorImpl<E, Lis
 
 	//private ListIterator<PersistentObjectReference<E>> subIterator;
 	
-	PersistentListIteratorImpl(PersistentIterable<E, List<PersistentObjectReference<E>>> collection) {
+	PersistentListIteratorImpl(PersistentCollectionIterable<E, List<PersistentObjectReference<E>>> collection) {
 		super(collection);
 	}
 

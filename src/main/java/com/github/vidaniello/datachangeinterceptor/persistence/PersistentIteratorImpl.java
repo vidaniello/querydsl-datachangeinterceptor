@@ -8,7 +8,8 @@ import java.util.Objects;
 
 public class PersistentIteratorImpl<E, T extends Collection<PersistentObjectReference<E>>, K extends Iterator<PersistentObjectReference<E>>> implements PersistentIterator<E> {
 
-	private PersistentIterable<E , T> persistentIterable;
+	private PersistentCollectionIterable<E , T> persistentIterable;
+	private PersistentMapIterable<? , E> persistentMapIterable;
 	//private T preLoadedCollection;
 	private PersistentObjectReferenceInfo collectionPersistentObjectReferenceInfo;
 	private K currentIterator;
@@ -17,9 +18,14 @@ public class PersistentIteratorImpl<E, T extends Collection<PersistentObjectRefe
 		
 	} 
 	
-	PersistentIteratorImpl(PersistentIterable<E, T> persistentIterable) {
+	PersistentIteratorImpl(PersistentCollectionIterable<E, T> persistentIterable) {
 		Objects.requireNonNull(persistentIterable);
 		this.persistentIterable = persistentIterable;
+	} 
+	
+	PersistentIteratorImpl(PersistentMapIterable<? , E> persistentMapIterable) {
+		Objects.requireNonNull(persistentMapIterable);
+		this.persistentMapIterable = persistentMapIterable;
 	} 
 	
 	@SuppressWarnings("unchecked")
@@ -31,13 +37,21 @@ public class PersistentIteratorImpl<E, T extends Collection<PersistentObjectRefe
 		this.collectionPersistentObjectReferenceInfo = collectionPersistentObjectReferenceInfo;
 	} 
 	
-	PersistentIterable<E, T> getPersistentIterable() {
+	PersistentCollectionIterable<E, T> getPersistentIterable() {
 		return persistentIterable;
 	}
 	
+	PersistentMapIterable<?, E> getPersistentMapIterable() {
+		return persistentMapIterable;
+	}
+	
 	private PersistentObjectReferenceInfo getOriginalPersistentObjectReferenceInfo() {
-		if(collectionPersistentObjectReferenceInfo==null)
-			collectionPersistentObjectReferenceInfo = getPersistentIterable().getOriginalPersistentObjectReferenceInfo(); 
+		if(collectionPersistentObjectReferenceInfo==null) {
+			if(getPersistentIterable()!=null)
+				collectionPersistentObjectReferenceInfo = getPersistentIterable().getOriginalPersistentObjectReferenceInfo(); 
+			else if (getPersistentMapIterable()!=null)
+				collectionPersistentObjectReferenceInfo = getPersistentMapIterable().getOriginalPersistentObjectReferenceInfo();
+		}
 		return collectionPersistentObjectReferenceInfo;
 	}
 	
@@ -65,6 +79,9 @@ public class PersistentIteratorImpl<E, T extends Collection<PersistentObjectRefe
 				currentIterator = (K) getPersistentIterable().getCollection().iterator();
 			}//else if (getPreLoadedCollection()!=null)
 				//currentIterator = getPreLoadedCollection().iterator();
+			else if (getPersistentMapIterable()!=null) {
+				currentIterator = (K) getPersistentMapIterable().getMap().values().iterator();
+			}
 		}
 		return currentIterator;
 	}

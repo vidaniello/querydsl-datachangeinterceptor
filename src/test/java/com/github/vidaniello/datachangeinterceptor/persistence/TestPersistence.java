@@ -587,12 +587,37 @@ public class TestPersistence {
 			SimplePojo sp5 = getSimplePojoMock();
 			sp5.setId(546);
 			
+			SimplePojo sp6 = getSimplePojoMock();
+			sp6.setId(854654);
+			SimplePojo sp7 = getSimplePojoMock();
+			sp7.setId(141);
+			SimplePojo sp8 = getSimplePojoMock();
+			sp8.setId(96);
+			SimplePojo sp9 = getSimplePojoMock();
+			sp9.setId(20);
+			SimplePojo sp10 = getSimplePojoMock();
+			sp10.setId(9);
+			
 			
 			PersistentMap<Integer, SimplePojo> map = sco.getMapOfSimplePojos();
 			
-			SimplePojo ret = map.put(45, sp1);
+			SimplePojo ret = map.put(8778, sp1);
 			
 			ret = map.put(45, sp2);
+			ret = map.put(46, sp3);
+			ret = map.put(47, sp4);
+			ret = map.put(48, sp5);
+			
+			ret = map.put(32, sp6);
+			ret = map.put(33, sp7);
+			ret = map.put(34, sp8);
+			ret = map.put(35, sp9);
+			ret = map.put(36, sp10);
+			
+			Collection<SimplePojo> coll = map.values();
+			
+			//SimplePojo ret = map.remove(45);
+			map.clear();
 			
 			int i = 0;
 		} catch (Exception e) {

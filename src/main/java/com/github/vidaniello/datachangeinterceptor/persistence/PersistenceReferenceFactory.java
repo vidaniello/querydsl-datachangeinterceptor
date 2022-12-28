@@ -243,7 +243,7 @@ public class PersistenceReferenceFactory {
 		
 		//if(!meth.getReturnType().equals(PersistentObjectReference.class))
 		if(!PersistentObjectReference.class.isAssignableFrom(meth.getReturnType()) &&
-		   !PersistentIterable.class.isAssignableFrom(meth.getReturnType()) &&
+		   !PersistentCollectionIterable.class.isAssignableFrom(meth.getReturnType()) &&
 		   !PersistentMap.class.isAssignableFrom(meth.getReturnType())
 		)
 			throw new Exception("The method not return a valid PersistenceReference object!");

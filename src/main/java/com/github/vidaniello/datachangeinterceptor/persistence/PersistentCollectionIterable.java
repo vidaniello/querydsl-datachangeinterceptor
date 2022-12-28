@@ -2,7 +2,7 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.util.Collection;
 
-public interface PersistentIterable<E, T extends Collection<PersistentObjectReference<E>>> extends Iterable<E>{
+public interface PersistentCollectionIterable<E, T extends Collection<PersistentObjectReference<E>>> extends Iterable<E>, PersistenceIterable{
 	
 	/**
 	 * Returns the instance on which to perform the CRUD operations (the Collection, the map, etc.)
@@ -11,8 +11,4 @@ public interface PersistentIterable<E, T extends Collection<PersistentObjectRefe
 	 */
 	public T getCollection() throws Exception;
 	
-	//public T getCollectionReferencesImplementation() throws Exception;
-	
-	public PersistentObjectReferenceInfo getOriginalPersistentObjectReferenceInfo();
-
 }

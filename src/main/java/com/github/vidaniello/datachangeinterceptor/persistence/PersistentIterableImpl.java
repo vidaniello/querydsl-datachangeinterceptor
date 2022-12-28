@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import javax.management.RuntimeErrorException;
 
-public abstract class PersistentIterableImpl<E, T extends Collection<PersistentObjectReference<E>>> implements PersistentIterable<E, T>{
+public abstract class PersistentIterableImpl<E, T extends Collection<PersistentObjectReference<E>>> implements PersistentCollectionIterable<E, T>{
 	
 	
 	private PersistentObjectReference<T> wrappedReference;
