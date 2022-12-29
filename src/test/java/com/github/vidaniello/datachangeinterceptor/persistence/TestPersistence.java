@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -568,40 +571,50 @@ public class TestPersistence {
 	@Test
 	public void testNewMap() {
 		try {
-									
+						
 			SimpleContainerObject sco = new SimpleContainerObject();
 			sco.setId("1");
 						
 			SimplePojo sp1 = getSimplePojoMock();
-			sp1.setId(14);
+			sp1.setName("SP1");
+			sp1.setId(1);
 			
 			SimplePojo sp2 = getSimplePojoMock();
-			sp2.setId(266);
+			sp2.setName("SP2");
+			sp2.setId(1);
 			
 			SimplePojo sp3 = getSimplePojoMock();
-			sp3.setId(34);
+			sp3.setName("SP3");
+			sp3.setId(1);
 			
 			SimplePojo sp4 = getSimplePojoMock();
-			sp4.setId(43434);
+			sp4.setName("SP4");
+			sp4.setId(1);
 			
 			SimplePojo sp5 = getSimplePojoMock();
-			sp5.setId(546);
+			sp5.setName("SP5");
+			sp5.setId(1);
 			
 			SimplePojo sp6 = getSimplePojoMock();
-			sp6.setId(854654);
+			sp6.setName("SP6");
+			sp6.setId(2);
 			SimplePojo sp7 = getSimplePojoMock();
-			sp7.setId(141);
+			sp7.setName("SP7");
+			sp7.setId(2);
 			SimplePojo sp8 = getSimplePojoMock();
-			sp8.setId(96);
+			sp8.setName("SP8");
+			sp8.setId(2);
 			SimplePojo sp9 = getSimplePojoMock();
-			sp9.setId(20);
+			sp9.setName("SP9");
+			sp9.setId(2);
 			SimplePojo sp10 = getSimplePojoMock();
-			sp10.setId(9);
+			sp10.setName("SP10");
+			sp10.setId(2);
 			
 			
 			PersistentMap<Integer, SimplePojo> map = sco.getMapOfSimplePojos();
 			
-			SimplePojo ret = map.put(8778, sp1);
+			SimplePojo ret = map.put(1, sp1);
 			
 			ret = map.put(45, sp2);
 			ret = map.put(46, sp3);
@@ -614,12 +627,39 @@ public class TestPersistence {
 			ret = map.put(35, sp9);
 			ret = map.put(36, sp10);
 			
-			Collection<SimplePojo> coll = map.values();
+			
+			/*
+			Map<Integer,SimplePojo> newToPutAll = new HashMap<>();
+			
+			for(int i=10000;i<=20000;i++) {
+				ret = getSimplePojoMock();
+				ret.setId(i+10);
+				ret.setName("SP"+ret.getId());
+				newToPutAll.put(i, ret);
+			}
+			
+			map.putAll(newToPutAll);
+					
+			*/
+			
+			
+			//Collection<SimplePojo> coll = map.values();
+			
+			/*
+			Stream<SimplePojo> sps = map.valuesParallelStream();
+			
+			ForkJoinPool fjp = new ForkJoinPool(2);
+			ForkJoinTask<?> fjt = fjp.submit(()->sps.forEach(simplP->{
+				log.debug(simplP.getName());
+			}));
+			
+			fjt.get();
+			fjp.shutdown();
+			*/
 			
 			//SimplePojo ret = map.remove(45);
 			map.clear();
-			
-			int i = 0;
+						
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

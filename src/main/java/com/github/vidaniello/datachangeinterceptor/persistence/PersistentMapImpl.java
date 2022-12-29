@@ -2,16 +2,16 @@ package com.github.vidaniello.datachangeinterceptor.persistence;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.management.RuntimeErrorException;
 
-public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
+public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE>, Function<PersistentObjectReference<VALUE>, VALUE> {
 
 	private PersistentObjectReference<Map<KEY,PersistentObjectReference<VALUE>>> wrappedReference;
 	private Map<KEY,PersistentObjectReference<VALUE>> initialInstanceImplementation;
@@ -167,8 +167,12 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 			toretref = map.remove(key);
 		
 		if(toretref!=null) {
-			toret = loadPersistenceInfo(toretref).getValue();
-			toretref.setValue(null);
+			try {
+				toret = loadPersistenceInfo(toretref).getValue();
+				toretref.setValue(null);
+			} catch (Exception e) {
+				throw e;
+			}
 		}
 
 		return toret;
@@ -283,6 +287,20 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 			
 			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
 			
+			m.keySet().parallelStream().forEach(key->{
+				try {
+					VALUE curVal = m.get(key);
+					PersistentObjectReference<VALUE> newToAdd = getPersistentObjectReference(curVal);
+					newToAdd.setValue(curVal);
+					synchronized(map) {
+						removeOrPut(true,key,map,newToAdd);
+					}
+				} catch (Exception exc) {
+					toThrow[0]=exc;
+				}
+			});
+			
+			/*
 			m.forEach((key,val)->{
 				try {
 					PersistentObjectReference<VALUE> newToAdd = getPersistentObjectReference(val);
@@ -292,6 +310,7 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 					toThrow[0]=exc;
 				}
 			});
+			*/
 			
 			getWrappedReference().setValue(map);
 			
@@ -312,40 +331,40 @@ public class PersistentMapImpl<KEY,VALUE> implements PersistentMap<KEY,VALUE> {
 		}
 	}
 
+	@Override
 	public synchronized Collection<PersistentObjectReference<VALUE>> valuesReferences() throws Exception{
 		return getMap().values();
 	}
 	
 	@Override
 	public synchronized Collection<VALUE> values() {
-		try {
-			Exception[] toThrow = new Exception[]{null};
-			Map<KEY,PersistentObjectReference<VALUE>> map = getMap();
-			Collection<PersistentObjectReference<VALUE>> refColl = map.values();
-			
-			Stream<VALUE> stream = refColl.parallelStream().map((m)->{
-				try {
-					return loadPersistenceInfo(m).getValue();
-				} catch (Exception exc) {
-					toThrow[0]=exc;
-					return null;
-				}
-			});
-			
-			if(toThrow[0]!=null)
-				throw toThrow[0];
-			
-			return stream.collect(Collectors.toList());
+		try {		
+			return valuesParallelStream().collect(Collectors.toList());
 		} catch (Exception e) {
 			throw newRuntimeException(e);
 		}
 	}
 
+	@Override
+	public VALUE apply(PersistentObjectReference<VALUE> t) {
+		try {
+			return loadPersistenceInfo(t).getValue();
+		} catch (Exception e) {
+			throw newRuntimeException(e);
+		}
+	}
 	
+	@Override
+	public synchronized Stream<VALUE> valuesParallelStream() throws Exception{
+		return getMap().values().parallelStream().map(this);
+	}
 	
+	@Override
+	public synchronized Stream<VALUE> valuesStream() throws Exception{
+		return getMap().values().stream().map(this);
+	}
 	
-	
-	
+	@Override
 	public Iterator<VALUE> valuesIterator() {
 		return new PersistentIteratorImpl<VALUE, Collection<PersistentObjectReference<VALUE>>, Iterator<PersistentObjectReference<VALUE>>>(this);
 	}

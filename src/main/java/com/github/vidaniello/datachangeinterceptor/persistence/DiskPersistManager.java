@@ -96,7 +96,8 @@ public class DiskPersistManager<VALUE extends Serializable> extends PersistManag
 	public void delete(String key) throws IOException {
 		File file = new File(getBasePath()+key);
 		if(!file.delete())
-			throw new IOException("Unable to delete "+getBasePath()+key);
+			if(file.exists())
+				throw new IOException("Unable to delete "+getBasePath()+key);
 	}
 	
 

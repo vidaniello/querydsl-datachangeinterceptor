@@ -67,6 +67,7 @@ public class PersistentObjectReferenceImpl</*KEY,*/ VALUE> implements Persistent
 			getRepository().write(getKey(), value);
 		else
 			getRepository().delete(getKey());
+			
 	}
 
 	@Override
