@@ -3,6 +3,7 @@ package com.github.vidaniello.datachangeinterceptor;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -12,7 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -470,7 +476,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 	
 	
 	
-	private void findDeletedDataChangeTableEntity(SqlQueryInformationProcess qProcess, Date timeOccured, Set<Serializable> entitiesFinded, Set<DataChangeTableEntity> entitiesTouched) {
+	private void findDeletedDataChangeTableEntity(SqlQueryInformationProcess qProcess, Date timeOccured, Set<Serializable> entitiesFinded, Set<DataChangeTableEntity> entitiesTouched) throws InterruptedException, ExecutionException {
 
 		Set<Serializable> dcteToRemove = new HashSet<>();
 		
@@ -486,7 +492,7 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			});
 			*/
 			
-			getEntities().values().parallelStream().forEach(val->{
+			Consumer<DataChangeTableEntity> noRangeComparator = val->{
 				if(!entitiesFinded.contains(val.getKey()) && !val.isMarkAsDeleted()) {
 					
 					try {
@@ -513,7 +519,22 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 						log.warn(val.getKey()+": "+e.getMessage(), e);
 					}
 				}
-			});
+			};
+			
+			if(getCfg().getMaxParallelThreads()<=0) 
+				getEntities().values().parallelStream().forEach(noRangeComparator);
+			else {
+				ForkJoinPool fjp = new ForkJoinPool(getCfg().getMaxParallelThreads());
+				Collection<DataChangeTableEntity> coll = getEntities().values();
+				ForkJoinTask<?> fjt = fjp.submit(
+						()->coll.parallelStream().forEach(noRangeComparator)
+					);
+				fjt.get();
+				fjp.shutdown();
+			}
+			
+			
+			
 		
 		} else {
 			
@@ -539,39 +560,54 @@ public class DataChangeTable implements Serializable, StatisticsCollector/*, Pre
 			});
 			*/
 			
-			getEntities().values().parallelStream().forEach(val->{
+			
+			Consumer<DataChangeTableEntity> withRangeComparator = val->{
 				if(!entitiesFinded.contains(val.getKey()) && !val.isMarkAsDeleted()) {
-											
-						try {
+					
+					try {
+						
+						if(getCfg().isModeWalkAndDeleteByDiscriminator()) {
 							
-							if(getCfg().isModeWalkAndDeleteByDiscriminator()) {
+							if(getCfg().getDynRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
 								
-								if(getCfg().getDynRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
-									
-									if(qProcess.getRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
-										markDataChangeTableEntityDeleted(timeOccured, val);
-										synchronized (entitiesTouched) {entitiesTouched.add(val);}
-									}
-								
-								} else
-									synchronized (dcteToRemove) {dcteToRemove.add(val.getKey());}
-								
-							} else {
-							
 								if(qProcess.getRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
 									markDataChangeTableEntityDeleted(timeOccured, val);
 									synchronized (entitiesTouched) {entitiesTouched.add(val);}
 								}
-								
-							}
-														
 							
-						} catch (Exception e) {
-							log.warn(val.getKey()+": "+e.getMessage(), e);
-						}
+							} else
+								synchronized (dcteToRemove) {dcteToRemove.add(val.getKey());}
+							
+						} else {
 						
+							if(qProcess.getRangeComparator().isEntityInRange(getParent().getPreQueryContainer(), val.getLastDiscriminatorFieldValue())) {
+								markDataChangeTableEntityDeleted(timeOccured, val);
+								synchronized (entitiesTouched) {entitiesTouched.add(val);}
+							}
+							
+						}
+													
+						
+					} catch (Exception e) {
+						log.warn(val.getKey()+": "+e.getMessage(), e);
+					}
+					
 				}
-			});			
+			};
+			
+			if(getCfg().getMaxParallelThreads()<=0) 
+				getEntities().values().parallelStream().forEach(withRangeComparator);
+			else {
+				ForkJoinPool fjp = new ForkJoinPool(getCfg().getMaxParallelThreads());
+				Collection<DataChangeTableEntity> coll = getEntities().values();
+				ForkJoinTask<?> fjt = fjp.submit(
+						()->coll.parallelStream().forEach(withRangeComparator)
+					);
+				fjt.get();
+				fjp.shutdown();
+			}
+			
+						
 		}
 		
 		String mess = "Cycle find deleted complete in "+TimeUnit.MILLISECONDS.toSeconds(new Date().getTime()-dat.getTime())+"  seconds";

@@ -72,6 +72,8 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	 */
 	private boolean modeWalkAndDeleteByDiscriminator;
 	private DynamicRangeComparatorIf<?> dynRangeComparator;
+	
+	private int maxParallelThreads;
 		
 	public DataChangeTableConfig(Path<?> table, String tableName, DataChangeBlock parentBlock, Path<?>... masterKey) {
 		this.table = table;
@@ -101,6 +103,16 @@ public class DataChangeTableConfig extends PreQueryEmitterAbstract implements Se
 	}
 	*/
 	
+	public int getMaxParallelThreads() {
+		if(maxParallelThreads>0)
+			return maxParallelThreads;
+		return getParentBlock().getMaxParallelThreads();
+	}
+	
+	public DataChangeTableConfig setMaxParallelThreads(int maxParallelThreads) {
+		this.maxParallelThreads = maxParallelThreads;
+		return this;
+	}
 	
 	public boolean isModeWalkAndDeleteByDiscriminator() {
 		return modeWalkAndDeleteByDiscriminator;

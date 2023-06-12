@@ -70,6 +70,8 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 	
 	private PreQueryMapContainerIf preQueryContainer;
 	
+	private int maxParallelThreads;
+	
 	public DataChangeBlock(String... blockName) {
 		this.blockName = blockName;
 	}
@@ -102,6 +104,14 @@ public class DataChangeBlock extends PreQueryMapContainerAndEmitterAbstract impl
 		return this;
 	}
 	
+	public int getMaxParallelThreads() {
+		return maxParallelThreads;
+	}
+	
+	public DataChangeBlock setMaxParallelThreads(int maxParallelThreads) {
+		this.maxParallelThreads = maxParallelThreads;
+		return this;
+	}
 	
 	public Metadates getMetadates() {
 		if(metadates==null)
